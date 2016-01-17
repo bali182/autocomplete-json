@@ -1,0 +1,43 @@
+{
+  "name": "autocomplete-semantic-json",
+  "main": "./lib/main",
+  "version": "0.0.1",
+  "description": "Atom autocomplete+ plugin for semantic JSON completions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bali182/autocomplete-semantic-json.git"
+  },
+  "keywords": [
+    "atom",
+    "package",
+    "package.json",
+    "tsconfig",
+    "tsconfig.json",
+    "autocomplete",
+    "autocomplete+"
+  ],
+  "author": "Balazs Edes",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bali182/autocomplete-semantic-json/issues"
+  },
+  "homepage": "https://github.com/bali182/autocomplete-semantic-json#readme",
+  "dependencies": {
+    "jaro-winkler": "^0.2.6",
+    "lodash": "^3.10.1",
+    "minimatch": "^3.0.0",
+    "node-fetch": "^1.3.3",
+    "query-string": "^3.0.0",
+    "tokenizer2": "^1.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^1.7.5"
+  },
+  "providedServices": {
+    "autocomplete.provider": {
+      "versions": {
+        "2.0.0": "provide"
+      }
+    }
+  }
+}
