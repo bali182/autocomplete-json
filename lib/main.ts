@@ -1,3 +1,5 @@
+/// <reference path="../typings/tsd" />
+
 import RootProvider from './root-provider';
 import providerPaths from './provider-list';
 
