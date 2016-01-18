@@ -4,12 +4,6 @@ const del = require('del');
 const fs = require('fs');
 const merge = require('merge2');
 
-const build = (stream) => {
-  const options = JSON.parse(fs.readFileSync('tsconfig.json', "utf8")).compilerOptions;
-  const compile = ts(options);
-  return stream.pipe(compile);
-}
-
 gulp.task('clean', [], () => {
   return del([
     'lib/**/*.js',
