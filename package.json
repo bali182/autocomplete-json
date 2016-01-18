@@ -31,6 +31,9 @@
     "tokenizer2": "^1.2.0"
   },
   "devDependencies": {
+    "del": "^2.2.0",
+    "gulp": "^3.9.0",
+    "merge2": "^0.3.6",
     "typescript": "^1.7.5"
   },
   "providedServices": {
