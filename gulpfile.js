@@ -13,7 +13,7 @@ const build = (stream) => {
 gulp.task('clean', [], () => {
   return del([
     'lib/**/*.js',
-    'dist'
+    'dist/**'
   ]);
 });
 
