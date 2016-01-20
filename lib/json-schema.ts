@@ -146,9 +146,9 @@ export class SchemaRoot {
       }
     }
 
-    if ((schema.type === 'object' || isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
+    if ((schema.type === 'object' || (isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
       return new ObjectSchema(schema, this);
-    } else if ((schema.type === 'array' || isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
+    } else if ((schema.type === 'array' || (isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
       return new ArraySchema(schema, this);
     }
 
@@ -246,13 +246,6 @@ export class ObjectSchema extends BaseSchema {
     return 'object';
   }
 
-  getAvailableKeys(partial: any) {
-    if (!isObject(partial)) {
-      return [];
-    }
-    return this.getKeys().filter(key => !partial.hasOwnProperty(key));
-  }
-
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
     return visitor.visitObjectSchema(this, parameter);
   }
@@ -282,7 +275,7 @@ export class ArraySchema extends BaseSchema {
     const itemSchemaType = this.getItemSchema() && this.getItemSchema().getDisplayType()
       ? this.getItemSchema().getDisplayType()
       : 'any';
-    return `${itemSchemaType}[]`;
+    return itemSchemaType.split('|').map(t => `${t.trim()}[]`).join(' | ');
   }
 }
 
@@ -411,7 +404,6 @@ export class BooleanSchema extends BaseSchema {
     return 'boolean';
   }
 }
-
 
 export class AnySchema extends BaseSchema {
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {

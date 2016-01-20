@@ -1,4 +1,5 @@
-import {DefaultSchemaVisitor, SchemaRoot, StringSchema, NumberSchema, BaseSchema, BooleanSchema, EnumSchema, ArraySchema, ObjectSchema, NullSchema, CompositeSchema} from './json-schema';
+import {DefaultSchemaVisitor, SchemaRoot, StringSchema, NumberSchema, BaseSchema, BooleanSchema, EnumSchema,
+ArraySchema, ObjectSchema, NullSchema, CompositeSchema, OneOfSchema, AnyOfSchema, AllOfSchema} from './json-schema';
 import {IProposal, IRequest} from './provider-api'
 import {isObject, flatten} from 'lodash'
 
@@ -156,6 +157,72 @@ class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<IProposa
         return proposal;
       });
   }
+
+  visitCompositeSchema(schema: CompositeSchema, request: IRequest) {
+    return flatten(schema.getSchemas()
+      .filter(s => !(s instanceof AnyOfSchema))
+      .map(s => s.accept(this, request)));
+  }
+
+  visitAllOfSchema(schema: AllOfSchema, request: IRequest): Array<IProposal> {
+    return this.visitCompositeSchema(schema, request);
+  }
+
+  visitAnyOfSchema(schema: AnyOfSchema, request: IRequest): Array<IProposal> {
+    return this.visitCompositeSchema(schema, request);
+  }
+
+  visitOneOfSchema(schema: OneOfSchema, request: IRequest): Array<IProposal> {
+    return this.visitCompositeSchema(schema, request);
+  }
+}
+
+class KeyProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<IProposal>> {
+
+  constructor(private unwrappedContents: Object) {
+    super(((schema, request) => []));
+  }
+
+  visitObjectSchema(schema: ObjectSchema, request: IRequest): Array<IProposal> {
+    const {prefix, isBetweenQuotes} = request;
+    return schema.getKeys()
+      .filter(key => !this.unwrappedContents || (key.indexOf(prefix) >= 0 && !this.unwrappedContents.hasOwnProperty(key)))
+      .map<IProposal>(key => {
+        const valueSchema = schema.getProperty(key);
+        const proposal: IProposal = {};
+
+        proposal.description = valueSchema.getDescription()
+        proposal.type = 'property';
+        proposal.displayText = key;
+        proposal.rightLabel = valueSchema.getDisplayType();
+        if (isBetweenQuotes) {
+          proposal.text = key;
+        } else {
+          const value = schema.getProperty(key).accept(SnippetProposalVisitor.instance(), request);
+          proposal.snippet = `"${key}": ${value}`;
+        }
+        return proposal;
+      });
+  }
+  
+  visitCompositeSchema(schema: CompositeSchema, request: IRequest): Array<IProposal> {
+    const proposals = schema.getSchemas()
+      .filter(s => s instanceof ObjectSchema)
+      .map(s => s.accept(this, request))
+    return flatten(proposals)
+  }
+
+  visitAllOfSchema(schema: AllOfSchema, request: IRequest): Array<IProposal> {
+    return this.visitCompositeSchema(schema, request);
+  }
+
+  visitAnyOfSchema(schema: AnyOfSchema, request: IRequest): Array<IProposal> {
+    return this.visitCompositeSchema(schema, request);
+  }
+
+  visitOneOfSchema(schema: OneOfSchema, request: IRequest): Array<IProposal> {
+    return this.visitCompositeSchema(schema, request);
+  }
 }
 
 function resolveObject(segments: Array<string | number>, object: Object): any {
@@ -175,28 +242,11 @@ export interface IProposalFactory {
 
 class KeyProposalFactory implements IProposalFactory {
   createProposals(request: IRequest, schema: SchemaRoot): Array<IProposal> {
-    const {contents, isBetweenQuotes, prefix, segments} = request;
+    const {contents,  segments} = request;
     const unwrappedContents = resolveObject(segments, contents);
+    const visitor = new KeyProposalVisitor(unwrappedContents);
     const proposals = schema.getPossibleTypes(segments)
-      .filter(schema => schema instanceof ObjectSchema)
-      .map((schema: ObjectSchema) => schema.getKeys()
-        .filter(key => !unwrappedContents || (key.indexOf(prefix) >= 0 && !unwrappedContents.hasOwnProperty(key)))
-        .map<IProposal>(key => {
-          const valueSchema = schema.getProperty(key);
-          const proposal: IProposal = {};
-
-          proposal.description = valueSchema.getDescription()
-          proposal.type = 'property';
-          proposal.displayText = key;
-          proposal.rightLabel = valueSchema.getDisplayType();
-          if (isBetweenQuotes) {
-            proposal.text = key;
-          } else {
-            const value = schema.getProperty(key).accept(SnippetProposalVisitor.instance(), request);
-            proposal.snippet = `"${key}": ${value}`;
-          }
-          return proposal;
-        }));
+      .map(s => s.accept(visitor, request));
     return flatten(proposals);
   }
 }

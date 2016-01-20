@@ -120,10 +120,10 @@ var SchemaRoot = (function () {
                 oneOf: childSchemas
             };
         }
-        if ((schema.type === 'object' || lodash_1.isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
+        if ((schema.type === 'object' || (lodash_1.isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
             return new ObjectSchema(schema, this);
         }
-        else if ((schema.type === 'array' || lodash_1.isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
+        else if ((schema.type === 'array' || (lodash_1.isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
             return new ArraySchema(schema, this);
         }
         if (lodash_1.isArray(schema.oneOf)) {
@@ -213,12 +213,6 @@ var ObjectSchema = (function (_super) {
     ObjectSchema.prototype.getDisplayType = function () {
         return 'object';
     };
-    ObjectSchema.prototype.getAvailableKeys = function (partial) {
-        if (!lodash_1.isObject(partial)) {
-            return [];
-        }
-        return this.getKeys().filter(function (key) { return !partial.hasOwnProperty(key); });
-    };
     ObjectSchema.prototype.accept = function (visitor, parameter) {
         return visitor.visitObjectSchema(this, parameter);
     };
@@ -244,7 +238,7 @@ var ArraySchema = (function (_super) {
         var itemSchemaType = this.getItemSchema() && this.getItemSchema().getDisplayType()
             ? this.getItemSchema().getDisplayType()
             : 'any';
-        return itemSchemaType + "[]";
+        return itemSchemaType.split('|').map(function (t) { return (t.trim() + "[]"); }).join(' | ');
     };
     return ArraySchema;
 })(BaseSchema);
