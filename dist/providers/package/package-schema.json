@@ -4,30 +4,21 @@
   "definitions": {
     "person": {
       "description": "A person who has been involved in creating or maintaining this package",
-      "oneOf": [
-        {
+      "type": [ "object", "string" ],
+      "required": [ "name" ],
+      "properties": {
+        "name": {
           "type": "string"
         },
-        {
-          "type": "object",
-          "required": [
-            "name"
-          ],
-          "properties": {
-            "name": {
-              "type": "string"
-            },
-            "url": {
-              "type": "string",
-              "format": "uri"
-            },
-            "email": {
-              "type": "string",
-              "format": "email"
-            }
-          }
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
         }
-      ]
+      }
     },
     "dependency": {
       "description": "Dependencies are specified with a simple hash of package name to version range. The version range is a string which has one or more space-separated descriptors. Dependencies can also be identified with a tarball or git URL.",
@@ -38,6 +29,7 @@
     },
     "coreProperties": {
       "type": "object",
+
       "patternProperties": {
         "^_": {
           "description": "Any property starting with _ is valid.",
@@ -45,6 +37,7 @@
           "additionalItems": true
         }
       },
+
       "properties": {
         "name": {
           "description": "The name of the package.",
@@ -74,26 +67,19 @@
         },
         "bugs": {
           "description": "The url to your project's issue tracker and / or the email address to which issues should be reported. These are helpful for people who encounter issues with your package.",
-          "oneOf": [
-            {
-              "type": "string"
+          "type": [ "object", "string" ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "The url to your project's issue tracker.",
+              "format": "uri"
             },
-            {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "description": "The url to your project's issue tracker.",
-                  "format": "uri"
-                },
-                "email": {
-                  "type": "string",
-                  "description": "The email address to which issues should be reported.",
-                  "format": "email"
-                }
-              }
+            "email": {
+              "type": "string",
+              "description": "The email address to which issues should be reported.",
+              "format": "email"
             }
-          ]
+          }
         },
         "license": {
           "type": "string",
@@ -144,28 +130,17 @@
           "type": "string"
         },
         "bin": {
-          "oneOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "object"
-            }
-          ]
+          "type": [ "string", "object" ],
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "man": {
+          "type": [ "array", "string" ],
           "description": "Specify either a single file or an array of filenames to put in place for the man program to find.",
-          "oneOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          ]
+          "items": {
+            "type": "string"
+          }
         },
         "directories": {
           "type": "object",
@@ -297,18 +272,13 @@
     },
     "jspmDefinition": {
       "properties": {
-        "jspm": {
-          "$ref": "#/definitions/coreProperties"
-        }
+        "jspm": { "$ref": "#/definitions/coreProperties" }
       }
     }
   },
   "allOf": [
-    {
-      "$ref": "#/definitions/coreProperties"
-    },
-    {
-      "$ref": "#/definitions/jspmDefinition"
-    }
+    { "$ref": "#/definitions/coreProperties" },
+    { "$ref": "#/definitions/jspmDefinition" },
+    { "required": [ "name", "version" ] }
   ]
 }

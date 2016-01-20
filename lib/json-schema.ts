@@ -1,4 +1,4 @@
-import {isEmpty, isArray, isObject, memoize, flatten} from 'lodash';
+import {assign, clone, isEmpty, isArray, isObject, memoize, flatten} from 'lodash';
 
 type Dictionary<T> = { [key: string]: T };
 
@@ -13,6 +13,7 @@ export interface ISchemaVisitor<P, R> {
   visitAllOfSchema(schema: AllOfSchema, parameter: P): R
   visitAnyOfSchema(schema: AnyOfSchema, parameter: P): R
   visitNullSchema(schema: NullSchema, parameter: P): R
+  visitAnySchema(schema: AnySchema, parameter: P): R
 }
 
 export abstract class DefaultSchemaVisitor<P, R> implements ISchemaVisitor<P, R>{
@@ -27,6 +28,7 @@ export abstract class DefaultSchemaVisitor<P, R> implements ISchemaVisitor<P, R>
   visitAllOfSchema(schema: AllOfSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
   visitAnyOfSchema(schema: AnyOfSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
   visitNullSchema(schema: NullSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
+  visitAnySchema(schema: AnySchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
 }
 
 interface ISchemaVisitee {
@@ -128,8 +130,20 @@ export class SchemaRoot {
   }
 
   wrap(schema: any): BaseSchema {
+    if (!schema) {
+      console.warn(`${schema} schema found`);
+      return new AnySchema({}, this);
+    }
+    
     if (schema.$ref) {
       schema = this.resolveRef(schema.$ref);
+    }
+    
+    if (isArray(schema.type)) {
+      const childSchemas = schema.type.map((type: string) => assign(clone(schema), { type }));
+      schema = {
+        oneOf: childSchemas
+      }
     }
 
     if ((schema.type === 'object' || isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
@@ -138,7 +152,7 @@ export class SchemaRoot {
       return new ArraySchema(schema, this);
     }
 
-    if (isArray(schema.oneOf) || schema.item) {
+    if (isArray(schema.oneOf)) {
       return new OneOfSchema(schema, this);
     } else if (isArray(schema.anyOf)) {
       return new AnyOfSchema(schema, this);
@@ -155,7 +169,8 @@ export class SchemaRoot {
       case 'string': return new StringSchema(schema, this);
       case 'null': return new NullSchema(schema, this);
     }
-    throw new Error(`Illegal schema part: ${JSON.stringify(schema)}`);
+    console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
+    return new AnySchema({}, this);
   }
 
   getPossibleTypes(segments: Array<number | string>) {
@@ -207,7 +222,10 @@ export class ObjectSchema extends BaseSchema {
     const properties = this.schema.properties || {};
     this.keys = Object.keys(properties);
     this.properties = this.keys.reduce((object, key) => {
-      object[key] = this.getSchemaRoot().wrap(properties[key])
+      const propertySchema = this.getSchemaRoot().wrap(properties[key]);
+      if(propertySchema !== null) {
+        object[key] = propertySchema;
+      }
       return object;
     }, <Dictionary<BaseSchema>>{});
   }
@@ -248,7 +266,8 @@ export class ArraySchema extends BaseSchema {
 
   constructor(schema: Object, schemaRoot: SchemaRoot) {
     super(schema, schemaRoot);
-    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items);
+    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items) 
+      || new StringSchema({}, this.getSchemaRoot());
   }
 
   getItemSchema() {
@@ -394,5 +413,20 @@ export class BooleanSchema extends BaseSchema {
 
   getDisplayType() {
     return 'boolean';
+  }
+}
+
+
+export class AnySchema extends BaseSchema {
+  accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
+    return visitor.visitAnySchema(this, parameter);
+  }
+  
+  getDefaultValue(): boolean {
+    return null
+  }
+  
+  getDisplayType() {
+    return 'any';
   }
 }
