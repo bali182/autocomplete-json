@@ -120,10 +120,10 @@ var SchemaRoot = (function () {
                 oneOf: childSchemas
             };
         }
-        if ((schema.type === 'object' || lodash_1.isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
+        if ((schema.type === 'object' || (lodash_1.isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
             return new ObjectSchema(schema, this);
         }
-        else if ((schema.type === 'array' || lodash_1.isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
+        else if ((schema.type === 'array' || (lodash_1.isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
             return new ArraySchema(schema, this);
         }
         if (lodash_1.isArray(schema.oneOf)) {
@@ -194,10 +194,7 @@ var ObjectSchema = (function (_super) {
         var properties = this.schema.properties || {};
         this.keys = Object.keys(properties);
         this.properties = this.keys.reduce(function (object, key) {
-            var propertySchema = _this.getSchemaRoot().wrap(properties[key]);
-            if (propertySchema !== null) {
-                object[key] = propertySchema;
-            }
+            object[key] = _this.getSchemaRoot().wrap(properties[key]);
             return object;
         }, {});
     }
@@ -216,12 +213,6 @@ var ObjectSchema = (function (_super) {
     ObjectSchema.prototype.getDisplayType = function () {
         return 'object';
     };
-    ObjectSchema.prototype.getAvailableKeys = function (partial) {
-        if (!lodash_1.isObject(partial)) {
-            return [];
-        }
-        return this.getKeys().filter(function (key) { return !partial.hasOwnProperty(key); });
-    };
     ObjectSchema.prototype.accept = function (visitor, parameter) {
         return visitor.visitObjectSchema(this, parameter);
     };
@@ -232,8 +223,7 @@ var ArraySchema = (function (_super) {
     __extends(ArraySchema, _super);
     function ArraySchema(schema, schemaRoot) {
         _super.call(this, schema, schemaRoot);
-        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items)
-            || new StringSchema({}, this.getSchemaRoot());
+        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items);
     }
     ArraySchema.prototype.getItemSchema = function () {
         return this.itemSchema;
@@ -248,7 +238,7 @@ var ArraySchema = (function (_super) {
         var itemSchemaType = this.getItemSchema() && this.getItemSchema().getDisplayType()
             ? this.getItemSchema().getDisplayType()
             : 'any';
-        return itemSchemaType + "[]";
+        return itemSchemaType.split('|').map(function (t) { return (t.trim() + "[]"); }).join(' | ');
     };
     return ArraySchema;
 })(BaseSchema);

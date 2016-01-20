@@ -141,29 +141,35 @@ var ValueProposalVisitor = (function (_super) {
             return proposal;
         });
     };
+    ValueProposalVisitor.prototype.visitCompositeSchema = function (schema, request) {
+        var _this = this;
+        return lodash_1.flatten(schema.getSchemas()
+            .filter(function (s) { return !(s instanceof json_schema_1.AnyOfSchema); })
+            .map(function (s) { return s.accept(_this, request); }));
+    };
+    ValueProposalVisitor.prototype.visitAllOfSchema = function (schema, request) {
+        return this.visitCompositeSchema(schema, request);
+    };
+    ValueProposalVisitor.prototype.visitAnyOfSchema = function (schema, request) {
+        return this.visitCompositeSchema(schema, request);
+    };
+    ValueProposalVisitor.prototype.visitOneOfSchema = function (schema, request) {
+        return this.visitCompositeSchema(schema, request);
+    };
     ValueProposalVisitor.INSTANCE = null;
     return ValueProposalVisitor;
 })(json_schema_1.DefaultSchemaVisitor);
-function resolveObject(segments, object) {
-    if (!lodash_1.isObject(object)) {
-        return null;
+var KeyProposalVisitor = (function (_super) {
+    __extends(KeyProposalVisitor, _super);
+    function KeyProposalVisitor(unwrappedContents) {
+        _super.call(this, (function (schema, request) { return []; }));
+        this.unwrappedContents = unwrappedContents;
     }
-    if (segments.length === 0) {
-        return object;
-    }
-    var key = segments[0], restOfSegments = segments.slice(1);
-    return resolveObject(restOfSegments, object[key]);
-}
-var KeyProposalFactory = (function () {
-    function KeyProposalFactory() {
-    }
-    KeyProposalFactory.prototype.createProposals = function (request, schema) {
-        var contents = request.contents, isBetweenQuotes = request.isBetweenQuotes, prefix = request.prefix, segments = request.segments;
-        var unwrappedContents = resolveObject(segments, contents);
-        var proposals = schema.getPossibleTypes(segments)
-            .filter(function (schema) { return schema instanceof json_schema_1.ObjectSchema; })
-            .map(function (schema) { return schema.getKeys()
-            .filter(function (key) { return !unwrappedContents || (key.indexOf(prefix) >= 0 && !unwrappedContents.hasOwnProperty(key)); })
+    KeyProposalVisitor.prototype.visitObjectSchema = function (schema, request) {
+        var _this = this;
+        var prefix = request.prefix, isBetweenQuotes = request.isBetweenQuotes;
+        return schema.getKeys()
+            .filter(function (key) { return !_this.unwrappedContents || (key.indexOf(prefix) >= 0 && !_this.unwrappedContents.hasOwnProperty(key)); })
             .map(function (key) {
             var valueSchema = schema.getProperty(key);
             var proposal = {};
@@ -179,7 +185,45 @@ var KeyProposalFactory = (function () {
                 proposal.snippet = "\"" + key + "\": " + value;
             }
             return proposal;
-        }); });
+        });
+    };
+    KeyProposalVisitor.prototype.visitCompositeSchema = function (schema, request) {
+        var _this = this;
+        var proposals = schema.getSchemas()
+            .filter(function (s) { return s instanceof json_schema_1.ObjectSchema; })
+            .map(function (s) { return s.accept(_this, request); });
+        return lodash_1.flatten(proposals);
+    };
+    KeyProposalVisitor.prototype.visitAllOfSchema = function (schema, request) {
+        return this.visitCompositeSchema(schema, request);
+    };
+    KeyProposalVisitor.prototype.visitAnyOfSchema = function (schema, request) {
+        return this.visitCompositeSchema(schema, request);
+    };
+    KeyProposalVisitor.prototype.visitOneOfSchema = function (schema, request) {
+        return this.visitCompositeSchema(schema, request);
+    };
+    return KeyProposalVisitor;
+})(json_schema_1.DefaultSchemaVisitor);
+function resolveObject(segments, object) {
+    if (!lodash_1.isObject(object)) {
+        return null;
+    }
+    if (segments.length === 0) {
+        return object;
+    }
+    var key = segments[0], restOfSegments = segments.slice(1);
+    return resolveObject(restOfSegments, object[key]);
+}
+var KeyProposalFactory = (function () {
+    function KeyProposalFactory() {
+    }
+    KeyProposalFactory.prototype.createProposals = function (request, schema) {
+        var contents = request.contents, segments = request.segments;
+        var unwrappedContents = resolveObject(segments, contents);
+        var visitor = new KeyProposalVisitor(unwrappedContents);
+        var proposals = schema.getPossibleTypes(segments)
+            .map(function (s) { return s.accept(visitor, request); });
         return lodash_1.flatten(proposals);
     };
     return KeyProposalFactory;
