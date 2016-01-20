@@ -162,7 +162,7 @@ var SchemaRoot = (function () {
     SchemaRoot.prototype.getExpandedSchemas = function (schema) {
         if (schema instanceof CompositeSchema) {
             var schemas = [];
-            this.getSchema().accept(SchemaFlattenerVisitor.instance(), schemas);
+            schema.accept(SchemaFlattenerVisitor.instance(), schemas);
             return schemas;
         }
         return [schema];

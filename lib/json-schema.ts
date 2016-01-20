@@ -187,7 +187,7 @@ export class SchemaRoot {
   getExpandedSchemas(schema: BaseSchema) {
     if (schema instanceof CompositeSchema) {
       const schemas: Array<BaseSchema> = [];
-      this.getSchema().accept(SchemaFlattenerVisitor.instance(), schemas);
+      schema.accept(SchemaFlattenerVisitor.instance(), schemas);
       return schemas;
     }
     return [schema];
