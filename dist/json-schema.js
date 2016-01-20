@@ -18,6 +18,7 @@ var DefaultSchemaVisitor = (function () {
     DefaultSchemaVisitor.prototype.visitAllOfSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
     DefaultSchemaVisitor.prototype.visitAnyOfSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
     DefaultSchemaVisitor.prototype.visitNullSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
+    DefaultSchemaVisitor.prototype.visitAnySchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
     return DefaultSchemaVisitor;
 })();
 exports.DefaultSchemaVisitor = DefaultSchemaVisitor;
@@ -106,8 +107,18 @@ var SchemaRoot = (function () {
         return this.schema;
     };
     SchemaRoot.prototype.wrap = function (schema) {
+        if (!schema) {
+            console.warn(schema + " schema found");
+            return new AnySchema({}, this);
+        }
         if (schema.$ref) {
             schema = this.resolveRef(schema.$ref);
+        }
+        if (lodash_1.isArray(schema.type)) {
+            var childSchemas = schema.type.map(function (type) { return lodash_1.assign(lodash_1.clone(schema), { type: type }); });
+            schema = {
+                oneOf: childSchemas
+            };
         }
         if ((schema.type === 'object' || lodash_1.isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
             return new ObjectSchema(schema, this);
@@ -115,7 +126,7 @@ var SchemaRoot = (function () {
         else if ((schema.type === 'array' || lodash_1.isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf) {
             return new ArraySchema(schema, this);
         }
-        if (lodash_1.isArray(schema.oneOf) || schema.item) {
+        if (lodash_1.isArray(schema.oneOf)) {
             return new OneOfSchema(schema, this);
         }
         else if (lodash_1.isArray(schema.anyOf)) {
@@ -134,7 +145,8 @@ var SchemaRoot = (function () {
             case 'string': return new StringSchema(schema, this);
             case 'null': return new NullSchema(schema, this);
         }
-        throw new Error("Illegal schema part: " + JSON.stringify(schema));
+        console.warn("Illegal schema part: " + JSON.stringify(schema));
+        return new AnySchema({}, this);
     };
     SchemaRoot.prototype.getPossibleTypes = function (segments) {
         var _this = this;
@@ -182,7 +194,10 @@ var ObjectSchema = (function (_super) {
         var properties = this.schema.properties || {};
         this.keys = Object.keys(properties);
         this.properties = this.keys.reduce(function (object, key) {
-            object[key] = _this.getSchemaRoot().wrap(properties[key]);
+            var propertySchema = _this.getSchemaRoot().wrap(properties[key]);
+            if (propertySchema !== null) {
+                object[key] = propertySchema;
+            }
             return object;
         }, {});
     }
@@ -217,7 +232,8 @@ var ArraySchema = (function (_super) {
     __extends(ArraySchema, _super);
     function ArraySchema(schema, schemaRoot) {
         _super.call(this, schema, schemaRoot);
-        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items);
+        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items)
+            || new StringSchema({}, this.getSchemaRoot());
     }
     ArraySchema.prototype.getItemSchema = function () {
         return this.itemSchema;
@@ -377,3 +393,20 @@ var BooleanSchema = (function (_super) {
     return BooleanSchema;
 })(BaseSchema);
 exports.BooleanSchema = BooleanSchema;
+var AnySchema = (function (_super) {
+    __extends(AnySchema, _super);
+    function AnySchema() {
+        _super.apply(this, arguments);
+    }
+    AnySchema.prototype.accept = function (visitor, parameter) {
+        return visitor.visitAnySchema(this, parameter);
+    };
+    AnySchema.prototype.getDefaultValue = function () {
+        return null;
+    };
+    AnySchema.prototype.getDisplayType = function () {
+        return 'any';
+    };
+    return AnySchema;
+})(BaseSchema);
+exports.AnySchema = AnySchema;
