@@ -222,10 +222,7 @@ export class ObjectSchema extends BaseSchema {
     const properties = this.schema.properties || {};
     this.keys = Object.keys(properties);
     this.properties = this.keys.reduce((object, key) => {
-      const propertySchema = this.getSchemaRoot().wrap(properties[key]);
-      if(propertySchema !== null) {
-        object[key] = propertySchema;
-      }
+      object[key] = this.getSchemaRoot().wrap(properties[key])
       return object;
     }, <Dictionary<BaseSchema>>{});
   }
@@ -267,7 +264,6 @@ export class ArraySchema extends BaseSchema {
   constructor(schema: Object, schemaRoot: SchemaRoot) {
     super(schema, schemaRoot);
     this.itemSchema = this.getSchemaRoot().wrap(this.schema.items) 
-      || new StringSchema({}, this.getSchemaRoot());
   }
 
   getItemSchema() {

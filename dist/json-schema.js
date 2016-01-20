@@ -194,10 +194,7 @@ var ObjectSchema = (function (_super) {
         var properties = this.schema.properties || {};
         this.keys = Object.keys(properties);
         this.properties = this.keys.reduce(function (object, key) {
-            var propertySchema = _this.getSchemaRoot().wrap(properties[key]);
-            if (propertySchema !== null) {
-                object[key] = propertySchema;
-            }
+            object[key] = _this.getSchemaRoot().wrap(properties[key]);
             return object;
         }, {});
     }
@@ -232,8 +229,7 @@ var ArraySchema = (function (_super) {
     __extends(ArraySchema, _super);
     function ArraySchema(schema, schemaRoot) {
         _super.call(this, schema, schemaRoot);
-        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items)
-            || new StringSchema({}, this.getSchemaRoot());
+        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items);
     }
     ArraySchema.prototype.getItemSchema = function () {
         return this.itemSchema;
