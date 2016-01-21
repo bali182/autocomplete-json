@@ -1,103 +1,10 @@
 import {assign, clone, isEmpty, isArray, isObject, memoize, flatten} from 'lodash';
+import {ISchemaVisitor, SchemaFlattenerVisitor, SchemaInspectorVisitor} from './json-schema-visitors';
 
 type Dictionary<T> = { [key: string]: T };
 
-export interface ISchemaVisitor<P, R> {
-  visitObjectSchema(schema: ObjectSchema, parameter: P): R
-  visitArraySchema(schema: ArraySchema, parameter: P): R
-  visitEnumSchema(schema: EnumSchema, parameter: P): R
-  visitStringSchema(schema: StringSchema, parameter: P): R
-  visitNumberSchema(schema: NumberSchema, parameter: P): R
-  visitBooleanSchema(schema: BooleanSchema, parameter: P): R
-  visitOneOfSchema(schema: OneOfSchema, parameter: P): R
-  visitAllOfSchema(schema: AllOfSchema, parameter: P): R
-  visitAnyOfSchema(schema: AnyOfSchema, parameter: P): R
-  visitNullSchema(schema: NullSchema, parameter: P): R
-  visitAnySchema(schema: AnySchema, parameter: P): R
-}
-
-export abstract class DefaultSchemaVisitor<P, R> implements ISchemaVisitor<P, R>{
-  constructor(protected defaultVisit: (schema: BaseSchema, parameter: P) => R) { }
-  visitObjectSchema(schema: ObjectSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitArraySchema(schema: ArraySchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitEnumSchema(schema: EnumSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitStringSchema(schema: StringSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitNumberSchema(schema: NumberSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitBooleanSchema(schema: BooleanSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitOneOfSchema(schema: OneOfSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitAllOfSchema(schema: AllOfSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitAnyOfSchema(schema: AnyOfSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitNullSchema(schema: NullSchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-  visitAnySchema(schema: AnySchema, parameter: P): R { return this.defaultVisit(schema, parameter) }
-}
-
 interface ISchemaVisitee {
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R;
-}
-
-class SchemaInspectorVisitor extends DefaultSchemaVisitor<string | number, Array<BaseSchema>> {
-
-  static EMPTY_ARRAY: Array<BaseSchema> = [];
-  static INSTANCE: SchemaInspectorVisitor = null;
-
-  constructor() {
-    super((schema, segment) => SchemaInspectorVisitor.EMPTY_ARRAY);
-  }
-
-  static instance() {
-    if (SchemaInspectorVisitor.INSTANCE === null) {
-      SchemaInspectorVisitor.INSTANCE = new SchemaInspectorVisitor();
-    }
-    return SchemaInspectorVisitor.INSTANCE;
-  }
-
-  visitObjectSchema(schema: ObjectSchema, segment: string): Array<BaseSchema> {
-    const childSchema = schema.getProperty(segment)
-    return childSchema ? [childSchema] : SchemaInspectorVisitor.EMPTY_ARRAY;
-  }
-
-  visitArraySchema(schema: ArraySchema, segment: number): Array<BaseSchema> {
-    return [schema.getItemSchema()];
-  }
-
-  visitOneOfSchema(schema: OneOfSchema, segment: string | number): Array<BaseSchema> {
-    return flatten(schema.getSchemas().map(s => s.accept(this, segment)));
-  }
-
-  visitAllOfSchema(schema: AllOfSchema, segment: string | number): Array<BaseSchema> {
-    return flatten(schema.getSchemas().map(s => s.accept(this, segment)));
-  }
-
-  visitAnyOfSchema(schema: AnyOfSchema, segment: string | number): Array<BaseSchema> {
-    return flatten(schema.getSchemas().map(s => s.accept(this, segment)));
-  }
-}
-
-class SchemaFlattenerVisitor extends DefaultSchemaVisitor<Array<BaseSchema>, void> {
-  static INSTANCE: SchemaFlattenerVisitor = null;
-
-  constructor() {
-    super((schema, parameter) => parameter.push(schema));
-  }
-
-  static instance() {
-    if (SchemaFlattenerVisitor.INSTANCE === null) {
-      SchemaFlattenerVisitor.INSTANCE = new SchemaFlattenerVisitor();
-    }
-    return SchemaFlattenerVisitor.INSTANCE;
-  }
-
-  visitOneOfSchema(schema: OneOfSchema, collector: Array<BaseSchema>): void {
-    schema.getSchemas().forEach(childSchema => childSchema.accept(this, collector));
-  }
-
-  visitAllOfSchema(schema: AllOfSchema, collector: Array<BaseSchema>): void {
-    schema.getSchemas().forEach(childSchema => childSchema.accept(this, collector));
-  }
-
-  visitAnyOfSchema(schema: AnyOfSchema, collector: Array<BaseSchema>): void {
-    schema.getSchemas().forEach(childSchema => childSchema.accept(this, collector));
-  }
 }
 
 export class SchemaRoot {
@@ -134,11 +41,11 @@ export class SchemaRoot {
       console.warn(`${schema} schema found`);
       return new AnySchema({}, this);
     }
-    
+
     if (schema.$ref) {
       schema = this.resolveRef(schema.$ref);
     }
-    
+
     if (isArray(schema.type)) {
       const childSchemas = schema.type.map((type: string) => assign(clone(schema), { type }));
       schema = {
@@ -177,9 +84,10 @@ export class SchemaRoot {
     if (segments.length === 0) {
       return this.getExpandedSchemas(this.getSchema());
     }
+    const visitor = new SchemaInspectorVisitor();
     return segments.reduce((schemas: Array<BaseSchema>, segment: string) => {
       const resolvedNextSchemas = schemas.map(schema => this.getExpandedSchemas(schema));
-      const nextSchemas = flatten(resolvedNextSchemas).map(schema => schema.accept(SchemaInspectorVisitor.instance(), segment));
+      const nextSchemas = flatten(resolvedNextSchemas).map(schema => schema.accept(visitor, segment));
       return flatten(nextSchemas);
     }, [this.getSchema()]);
   }
@@ -187,7 +95,7 @@ export class SchemaRoot {
   getExpandedSchemas(schema: BaseSchema) {
     if (schema instanceof CompositeSchema) {
       const schemas: Array<BaseSchema> = [];
-      schema.accept(SchemaFlattenerVisitor.instance(), schemas);
+      schema.accept(new SchemaFlattenerVisitor(), schemas);
       return schemas;
     }
     return [schema];
@@ -256,7 +164,7 @@ export class ArraySchema extends BaseSchema {
 
   constructor(schema: Object, schemaRoot: SchemaRoot) {
     super(schema, schemaRoot);
-    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items) 
+    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items)
   }
 
   getItemSchema() {
@@ -409,11 +317,11 @@ export class AnySchema extends BaseSchema {
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
     return visitor.visitAnySchema(this, parameter);
   }
-  
+
   getDefaultValue(): boolean {
     return null
   }
-  
+
   getDisplayType() {
     return 'any';
   }

@@ -4,84 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var lodash_1 = require('lodash');
-var DefaultSchemaVisitor = (function () {
-    function DefaultSchemaVisitor(defaultVisit) {
-        this.defaultVisit = defaultVisit;
-    }
-    DefaultSchemaVisitor.prototype.visitObjectSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitArraySchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitEnumSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitStringSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitNumberSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitBooleanSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitOneOfSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitAllOfSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitAnyOfSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitNullSchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    DefaultSchemaVisitor.prototype.visitAnySchema = function (schema, parameter) { return this.defaultVisit(schema, parameter); };
-    return DefaultSchemaVisitor;
-})();
-exports.DefaultSchemaVisitor = DefaultSchemaVisitor;
-var SchemaInspectorVisitor = (function (_super) {
-    __extends(SchemaInspectorVisitor, _super);
-    function SchemaInspectorVisitor() {
-        _super.call(this, function (schema, segment) { return SchemaInspectorVisitor.EMPTY_ARRAY; });
-    }
-    SchemaInspectorVisitor.instance = function () {
-        if (SchemaInspectorVisitor.INSTANCE === null) {
-            SchemaInspectorVisitor.INSTANCE = new SchemaInspectorVisitor();
-        }
-        return SchemaInspectorVisitor.INSTANCE;
-    };
-    SchemaInspectorVisitor.prototype.visitObjectSchema = function (schema, segment) {
-        var childSchema = schema.getProperty(segment);
-        return childSchema ? [childSchema] : SchemaInspectorVisitor.EMPTY_ARRAY;
-    };
-    SchemaInspectorVisitor.prototype.visitArraySchema = function (schema, segment) {
-        return [schema.getItemSchema()];
-    };
-    SchemaInspectorVisitor.prototype.visitOneOfSchema = function (schema, segment) {
-        var _this = this;
-        return lodash_1.flatten(schema.getSchemas().map(function (s) { return s.accept(_this, segment); }));
-    };
-    SchemaInspectorVisitor.prototype.visitAllOfSchema = function (schema, segment) {
-        var _this = this;
-        return lodash_1.flatten(schema.getSchemas().map(function (s) { return s.accept(_this, segment); }));
-    };
-    SchemaInspectorVisitor.prototype.visitAnyOfSchema = function (schema, segment) {
-        var _this = this;
-        return lodash_1.flatten(schema.getSchemas().map(function (s) { return s.accept(_this, segment); }));
-    };
-    SchemaInspectorVisitor.EMPTY_ARRAY = [];
-    SchemaInspectorVisitor.INSTANCE = null;
-    return SchemaInspectorVisitor;
-})(DefaultSchemaVisitor);
-var SchemaFlattenerVisitor = (function (_super) {
-    __extends(SchemaFlattenerVisitor, _super);
-    function SchemaFlattenerVisitor() {
-        _super.call(this, function (schema, parameter) { return parameter.push(schema); });
-    }
-    SchemaFlattenerVisitor.instance = function () {
-        if (SchemaFlattenerVisitor.INSTANCE === null) {
-            SchemaFlattenerVisitor.INSTANCE = new SchemaFlattenerVisitor();
-        }
-        return SchemaFlattenerVisitor.INSTANCE;
-    };
-    SchemaFlattenerVisitor.prototype.visitOneOfSchema = function (schema, collector) {
-        var _this = this;
-        schema.getSchemas().forEach(function (childSchema) { return childSchema.accept(_this, collector); });
-    };
-    SchemaFlattenerVisitor.prototype.visitAllOfSchema = function (schema, collector) {
-        var _this = this;
-        schema.getSchemas().forEach(function (childSchema) { return childSchema.accept(_this, collector); });
-    };
-    SchemaFlattenerVisitor.prototype.visitAnyOfSchema = function (schema, collector) {
-        var _this = this;
-        schema.getSchemas().forEach(function (childSchema) { return childSchema.accept(_this, collector); });
-    };
-    SchemaFlattenerVisitor.INSTANCE = null;
-    return SchemaFlattenerVisitor;
-})(DefaultSchemaVisitor);
+var json_schema_visitors_1 = require('./json-schema-visitors');
 var SchemaRoot = (function () {
     function SchemaRoot(schemaRoot) {
         var _this = this;
@@ -153,16 +76,17 @@ var SchemaRoot = (function () {
         if (segments.length === 0) {
             return this.getExpandedSchemas(this.getSchema());
         }
+        var visitor = new json_schema_visitors_1.SchemaInspectorVisitor();
         return segments.reduce(function (schemas, segment) {
             var resolvedNextSchemas = schemas.map(function (schema) { return _this.getExpandedSchemas(schema); });
-            var nextSchemas = lodash_1.flatten(resolvedNextSchemas).map(function (schema) { return schema.accept(SchemaInspectorVisitor.instance(), segment); });
+            var nextSchemas = lodash_1.flatten(resolvedNextSchemas).map(function (schema) { return schema.accept(visitor, segment); });
             return lodash_1.flatten(nextSchemas);
         }, [this.getSchema()]);
     };
     SchemaRoot.prototype.getExpandedSchemas = function (schema) {
         if (schema instanceof CompositeSchema) {
             var schemas = [];
-            schema.accept(SchemaFlattenerVisitor.instance(), schemas);
+            schema.accept(new json_schema_visitors_1.SchemaFlattenerVisitor(), schemas);
             return schemas;
         }
         return [schema];
