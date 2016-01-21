@@ -1,7 +1,6 @@
 import * as minimatch from 'minimatch';
 import * as _ from 'lodash';
-import {tokenize} from './tokenizer';
-import {Tokens} from './constants';
+import {tokenize, TokenType} from './tokenizer';
 import {provideStructure, IStructureInfo} from './structure-provider';
 import {PositionInfo} from './utils';
 import {IProposalProvider, IRequest, IProposal} from './provider-api'
@@ -37,10 +36,10 @@ export default class RootProvider {
       if (!info || !info.nextToken || !tokens || tokens.length === 0) {
         return false;
       }
-      if (info.nextToken && _.includes([Tokens.END_ARRAY, Tokens.END_OBJECT], info.nextToken.type)) {
+      if (info.nextToken && _.includes([TokenType.END_ARRAY, TokenType.END_OBJECT], info.nextToken.type)) {
         return false;
       }
-      return !(info.nextToken && _.includes([Tokens.END_ARRAY, Tokens.END_OBJECT], info.nextToken.type)) && info.nextToken.type !== Tokens.COMMA;
+      return !(info.nextToken && _.includes([TokenType.END_ARRAY, TokenType.END_OBJECT], info.nextToken.type)) && info.nextToken.type !== TokenType.COMMA;
     }
 
     return {
@@ -50,7 +49,7 @@ export default class RootProvider {
       token: positionInfo ? (positionInfo.editedToken) ? positionInfo.editedToken.src : null : null,
       isKeyPosition: !!(positionInfo && positionInfo.keyPosition),
       isValuePosition: !!(positionInfo && positionInfo.valuePosition),
-      isBetweenQuotes: !!(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === Tokens.STRING),
+      isBetweenQuotes: !!(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === TokenType.STRING),
       shouldAddComma: !!shouldAddComma(positionInfo),
       isFileEmpty: tokens.length === 0
     }

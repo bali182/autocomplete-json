@@ -1,20 +1,20 @@
 var utils_1 = require('./utils');
-var constants_1 = require('./constants');
 var _ = require('lodash');
+var tokenizer_1 = require('./tokenizer');
 function intersectsWithToken(position, token) {
     var tRow = token.line - 1;
     var pRow = position.row;
     var tCol = token.col;
     var tLength = token.src.length;
     var pCol = position.column;
-    if (token.type === constants_1.Tokens.STRING) {
+    if (token.type === tokenizer_1.TokenType.STRING) {
         return tRow === pRow && tCol <= pCol && tCol + tLength - 1 > pCol;
     }
     else {
         return tRow === pRow && tCol <= pCol && tCol + tLength > pCol;
     }
 }
-function isBetweenTokens(position, firstToken, secondToken) {
+function isBetweenTokenType(position, firstToken, secondToken) {
     var pRow = position.row;
     var pCol = position.column;
     var fRow = firstToken.line - 1;
@@ -41,28 +41,28 @@ function consumeValue(tokens, container, position, posInfo, posInfoHolder) {
         }
     }
     switch (valueStartToken.type) {
-        case constants_1.Tokens.STRING:
+        case tokenizer_1.TokenType.STRING:
             container.push(_.trim(valueStartToken.src, '"'));
             checkPosition();
             break;
-        case constants_1.Tokens.NULL:
+        case tokenizer_1.TokenType.NULL:
             container.push(null);
             checkPosition();
             break;
-        case constants_1.Tokens.SYMBOL:
+        case tokenizer_1.TokenType.SYMBOL:
             container.push(undefined);
             checkPosition();
             break;
-        case constants_1.Tokens.NUMBER:
+        case tokenizer_1.TokenType.NUMBER:
             container.push(Number(valueStartToken.src));
             checkPosition();
             break;
-        case constants_1.Tokens.BEGIN_OBJECT:
+        case tokenizer_1.TokenType.BEGIN_OBJECT:
             var object = {};
             consumeObject(object, tokens, position, posInfo, posInfoHolder);
             container.push(object);
             break;
-        case constants_1.Tokens.BEGIN_ARRAY:
+        case tokenizer_1.TokenType.BEGIN_ARRAY:
             var array = [];
             consumeArray(array, tokens, position, posInfo, posInfoHolder);
             container.push(array);
@@ -71,8 +71,8 @@ function consumeValue(tokens, container, position, posInfo, posInfoHolder) {
     return posInfo;
 }
 function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
-    if (tokens.hasNext() && tokens.peekNext().type === constants_1.Tokens.END_OBJECT) {
-        if (!posInfoHolder.hasValue() && isBetweenTokens(position, tokens.current(), tokens.peekNext())) {
+    if (tokens.hasNext() && tokens.peekNext().type === tokenizer_1.TokenType.END_OBJECT) {
+        if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.current(), tokens.peekNext())) {
             var info = posInfo.setKeyPosition()
                 .setPreviousToken(tokens.current())
                 .setNextToken(tokens.peekNext())
@@ -81,7 +81,7 @@ function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
         }
         return;
     }
-    if (!posInfoHolder.hasValue() && isBetweenTokens(position, tokens.current(), tokens.peekNext())) {
+    if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.current(), tokens.peekNext())) {
         var info = posInfo.setKeyPosition()
             .setPreviousToken(tokens.current())
             .setNextToken(tokens.peekNext())
@@ -89,7 +89,7 @@ function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
         posInfoHolder.set(info);
     }
     var keyToken = tokens.next();
-    if (keyToken.type !== constants_1.Tokens.STRING && keyToken.type !== constants_1.Tokens.SYMBOL) {
+    if (keyToken.type !== tokenizer_1.TokenType.STRING && keyToken.type !== tokenizer_1.TokenType.SYMBOL) {
         return;
     }
     if (!posInfoHolder.hasValue() && intersectsWithToken(position, keyToken)) {
@@ -102,9 +102,9 @@ function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
     }
     var key = _.trim(keyToken.src, '"');
     var separatorToken = tokens.next();
-    if (separatorToken.type === constants_1.Tokens.END_LABEL) {
+    if (separatorToken.type === tokenizer_1.TokenType.END_LABEL) {
         var pathWithKey = posInfo.add(key);
-        if (!posInfoHolder.hasValue() && isBetweenTokens(position, separatorToken, tokens.peekNext())) {
+        if (!posInfoHolder.hasValue() && isBetweenTokenType(position, separatorToken, tokens.peekNext())) {
             var info = pathWithKey.setValuePosition()
                 .setPreviousToken(separatorToken)
                 .setNextToken(tokens.peekNext())
@@ -126,8 +126,8 @@ function consumeObject(object, tokens, position, posInfo, posInfoHolder) {
         if (tokens.hasNext()) {
             var token = tokens.next();
             switch (token.type) {
-                case constants_1.Tokens.END_OBJECT: return;
-                case constants_1.Tokens.COMMA: break;
+                case tokenizer_1.TokenType.END_OBJECT: return;
+                case tokenizer_1.TokenType.COMMA: break;
                 default: tokens.previous();
             }
         }
@@ -138,7 +138,7 @@ function consumeArray(array, tokens, position, posInfo, posInfoHolder) {
     while (tokens.hasNext()) {
         if (tokens.hasNext()) {
             var token = tokens.next();
-            if (!posInfoHolder.hasValue() && isBetweenTokens(position, tokens.peekPrevious(), token)) {
+            if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.peekPrevious(), token)) {
                 var info = posInfo.add(index)
                     .setValuePosition()
                     .setPreviousToken(tokens.peekPrevious())
@@ -147,7 +147,7 @@ function consumeArray(array, tokens, position, posInfo, posInfoHolder) {
                 posInfoHolder.set(info);
             }
             switch (token.type) {
-                case constants_1.Tokens.END_ARRAY: return;
+                case tokenizer_1.TokenType.END_ARRAY: return;
                 default: tokens.previous();
             }
         }
@@ -158,7 +158,7 @@ function consumeArray(array, tokens, position, posInfo, posInfoHolder) {
         index++;
         if (tokens.hasNext()) {
             var token = tokens.next();
-            if (!posInfoHolder.hasValue() && isBetweenTokens(position, token, tokens.peekNext())) {
+            if (!posInfoHolder.hasValue() && isBetweenTokenType(position, token, tokens.peekNext())) {
                 var info = posInfo.add(index)
                     .setValuePosition()
                     .setPreviousToken(token)
@@ -167,8 +167,8 @@ function consumeArray(array, tokens, position, posInfo, posInfoHolder) {
                 posInfoHolder.set(info);
             }
             switch (token.type) {
-                case constants_1.Tokens.END_ARRAY: return;
-                case constants_1.Tokens.COMMA: break;
+                case tokenizer_1.TokenType.END_ARRAY: return;
+                case tokenizer_1.TokenType.COMMA: break;
                 default: tokens.previous();
             }
         }
@@ -181,12 +181,12 @@ function provideStructure(tokensArray, position) {
     }
     var posInfoHolder = new utils_1.ValueHolder();
     var firstToken = tokens.next();
-    if (firstToken.type === constants_1.Tokens.BEGIN_OBJECT) {
+    if (firstToken.type === tokenizer_1.TokenType.BEGIN_OBJECT) {
         var object = {};
         consumeObject(object, tokens, position, new utils_1.PositionInfo(), posInfoHolder);
         return { contents: object, positionInfo: posInfoHolder.getOrElse(null), tokens: tokensArray };
     }
-    else if (firstToken.type === constants_1.Tokens.BEGIN_ARRAY) {
+    else if (firstToken.type === tokenizer_1.TokenType.BEGIN_ARRAY) {
         var array = [];
         consumeArray(array, tokens, position, new utils_1.PositionInfo(), posInfoHolder);
         return { contents: array, positionInfo: posInfoHolder.getOrElse(null), tokens: tokensArray };
