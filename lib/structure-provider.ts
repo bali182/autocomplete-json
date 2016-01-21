@@ -1,7 +1,6 @@
 import {ArrayTraverser, PositionInfo, IPositionInfo, ValueHolder} from './utils';
-import {Tokens} from './constants';
 import * as _ from 'lodash';
-import {IToken} from './tokenizer'
+import {IToken, TokenType} from './tokenizer'
 
 export interface IStructureInfo {
   contents: Object | Array<any>,
@@ -16,14 +15,14 @@ function intersectsWithToken(position: TextBuffer.IPoint, token: IToken): boolea
   const tLength = token.src.length;
   const pCol = position.column;
 
-  if (token.type === Tokens.STRING) {
+  if (token.type === TokenType.STRING) {
     return tRow === pRow && tCol <= pCol && tCol + tLength - 1 > pCol; // attention to ""
   } else {
     return tRow === pRow && tCol <= pCol && tCol + tLength > pCol;
   }
 }
 
-function isBetweenTokens(position: TextBuffer.IPoint, firstToken: IToken, secondToken: IToken) {
+function isBetweenTokenType(position: TextBuffer.IPoint, firstToken: IToken, secondToken: IToken) {
   const pRow = position.row;
   const pCol = position.column;
   const fRow = firstToken.line - 1;
@@ -56,28 +55,28 @@ function consumeValue(tokens: ArrayTraverser<IToken>, container: Array<any>, pos
   }
 
   switch (valueStartToken.type) {
-    case Tokens.STRING:
+    case TokenType.STRING:
       container.push(_.trim(valueStartToken.src, '"'));
       checkPosition();
       break;
-    case Tokens.NULL:
+    case TokenType.NULL:
       container.push(null);
       checkPosition();
       break;
-    case Tokens.SYMBOL:
+    case TokenType.SYMBOL:
       container.push(undefined);
       checkPosition();
       break;
-    case Tokens.NUMBER:
+    case TokenType.NUMBER:
       container.push(Number(valueStartToken.src));
       checkPosition();
       break;
-    case Tokens.BEGIN_OBJECT:
+    case TokenType.BEGIN_OBJECT:
       let object = {};
       consumeObject(object, tokens, position, posInfo, posInfoHolder);
       container.push(object);
       break;
-    case Tokens.BEGIN_ARRAY:
+    case TokenType.BEGIN_ARRAY:
       let array: Array<any> = [];
       consumeArray(array, tokens, position, posInfo, posInfoHolder);
       container.push(array);
@@ -87,8 +86,8 @@ function consumeValue(tokens: ArrayTraverser<IToken>, container: Array<any>, pos
 }
 
 function consumeKeyValuePair(object: Object, tokens: ArrayTraverser<IToken>, position: TextBuffer.IPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
-  if (tokens.hasNext() && tokens.peekNext().type === Tokens.END_OBJECT) {
-    if (!posInfoHolder.hasValue() && isBetweenTokens(position, tokens.current(), tokens.peekNext())) {
+  if (tokens.hasNext() && tokens.peekNext().type === TokenType.END_OBJECT) {
+    if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.current(), tokens.peekNext())) {
       const info = posInfo.setKeyPosition()
         .setPreviousToken(tokens.current())
         .setNextToken(tokens.peekNext())
@@ -98,7 +97,7 @@ function consumeKeyValuePair(object: Object, tokens: ArrayTraverser<IToken>, pos
     return;
   }
 
-  if (!posInfoHolder.hasValue() && isBetweenTokens(position, tokens.current(), tokens.peekNext())) {
+  if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.current(), tokens.peekNext())) {
     const info = posInfo.setKeyPosition()
       .setPreviousToken(tokens.current())
       .setNextToken(tokens.peekNext())
@@ -108,7 +107,7 @@ function consumeKeyValuePair(object: Object, tokens: ArrayTraverser<IToken>, pos
 
   const keyToken = tokens.next();
   // First token is not a key, skip it.
-  if (keyToken.type !== Tokens.STRING && keyToken.type !== Tokens.SYMBOL) {
+  if (keyToken.type !== TokenType.STRING && keyToken.type !== TokenType.SYMBOL) {
     return;
   }
 
@@ -123,9 +122,9 @@ function consumeKeyValuePair(object: Object, tokens: ArrayTraverser<IToken>, pos
 
   const key = _.trim(keyToken.src, '"');
   const separatorToken = tokens.next();
-  if (separatorToken.type === Tokens.END_LABEL) {
+  if (separatorToken.type === TokenType.END_LABEL) {
     const pathWithKey = posInfo.add(key);
-    if (!posInfoHolder.hasValue() && isBetweenTokens(position, separatorToken, tokens.peekNext())) {
+    if (!posInfoHolder.hasValue() && isBetweenTokenType(position, separatorToken, tokens.peekNext())) {
       const info = pathWithKey.setValuePosition()
         .setPreviousToken(separatorToken)
         .setNextToken(tokens.peekNext())
@@ -149,8 +148,8 @@ function consumeObject(object: Object, tokens: ArrayTraverser<IToken>, position:
     if (tokens.hasNext()) {
       const token = tokens.next();
       switch (token.type) {
-        case Tokens.END_OBJECT: return; // end of object
-        case Tokens.COMMA: break; // ',' read - nothing else to do
+        case TokenType.END_OBJECT: return; // end of object
+        case TokenType.COMMA: break; // ',' read - nothing else to do
         default: tokens.previous(); // something else, go back
       }
     }
@@ -162,7 +161,7 @@ function consumeArray(array: Array<any>, tokens: ArrayTraverser<IToken>, positio
   while (tokens.hasNext()) {
     if (tokens.hasNext()) {
       const token = tokens.next();
-      if (!posInfoHolder.hasValue() && isBetweenTokens(position, tokens.peekPrevious(), token)) {
+      if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.peekPrevious(), token)) {
         const info = posInfo.add(index)
           .setValuePosition()
           .setPreviousToken(tokens.peekPrevious())
@@ -171,7 +170,7 @@ function consumeArray(array: Array<any>, tokens: ArrayTraverser<IToken>, positio
         posInfoHolder.set(info);
       }
       switch (token.type) {
-        case Tokens.END_ARRAY: return; // end of array
+        case TokenType.END_ARRAY: return; // end of array
         default: tokens.previous(); // something else, go back
       }
     }
@@ -184,7 +183,7 @@ function consumeArray(array: Array<any>, tokens: ArrayTraverser<IToken>, positio
 
     if (tokens.hasNext()) {
       const token = tokens.next();
-      if (!posInfoHolder.hasValue() && isBetweenTokens(position, token, tokens.peekNext())) {
+      if (!posInfoHolder.hasValue() && isBetweenTokenType(position, token, tokens.peekNext())) {
         const info = posInfo.add(index)
           .setValuePosition()
           .setPreviousToken(token)
@@ -193,8 +192,8 @@ function consumeArray(array: Array<any>, tokens: ArrayTraverser<IToken>, positio
         posInfoHolder.set(info);
       }
       switch (token.type) {
-        case Tokens.END_ARRAY: return; // end of object
-        case Tokens.COMMA: break; // ',' read - nothing else to do
+        case TokenType.END_ARRAY: return; // end of object
+        case TokenType.COMMA: break; // ',' read - nothing else to do
         default: tokens.previous(); // something else, go back
       }
     }
@@ -210,11 +209,11 @@ export function provideStructure(tokensArray: Array<IToken>, position: TextBuffe
 
   const posInfoHolder = new ValueHolder<IPositionInfo>();
   const firstToken = tokens.next();
-  if (firstToken.type === Tokens.BEGIN_OBJECT) {
+  if (firstToken.type === TokenType.BEGIN_OBJECT) {
     const object = {};
     consumeObject(object, tokens, position, new PositionInfo(), posInfoHolder);
     return { contents: object, positionInfo: posInfoHolder.getOrElse(null), tokens: tokensArray };
-  } else if (firstToken.type === Tokens.BEGIN_ARRAY) {
+  } else if (firstToken.type === TokenType.BEGIN_ARRAY) {
     const array: Array<any> = [];
     consumeArray(array, tokens, position, new PositionInfo(), posInfoHolder);
     return { contents: array, positionInfo: posInfoHolder.getOrElse(null), tokens: tokensArray };

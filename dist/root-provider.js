@@ -1,7 +1,6 @@
 var minimatch = require('minimatch');
 var _ = require('lodash');
 var tokenizer_1 = require('./tokenizer');
-var constants_1 = require('./constants');
 var structure_provider_1 = require('./structure-provider');
 var RootProvider = (function () {
     function RootProvider(providers) {
@@ -34,10 +33,10 @@ var RootProvider = (function () {
             if (!info || !info.nextToken || !tokens || tokens.length === 0) {
                 return false;
             }
-            if (info.nextToken && _.includes([constants_1.Tokens.END_ARRAY, constants_1.Tokens.END_OBJECT], info.nextToken.type)) {
+            if (info.nextToken && _.includes([tokenizer_1.TokenType.END_ARRAY, tokenizer_1.TokenType.END_OBJECT], info.nextToken.type)) {
                 return false;
             }
-            return !(info.nextToken && _.includes([constants_1.Tokens.END_ARRAY, constants_1.Tokens.END_OBJECT], info.nextToken.type)) && info.nextToken.type !== constants_1.Tokens.COMMA;
+            return !(info.nextToken && _.includes([tokenizer_1.TokenType.END_ARRAY, tokenizer_1.TokenType.END_OBJECT], info.nextToken.type)) && info.nextToken.type !== tokenizer_1.TokenType.COMMA;
         };
         return {
             contents: contents,
@@ -46,7 +45,7 @@ var RootProvider = (function () {
             token: positionInfo ? (positionInfo.editedToken) ? positionInfo.editedToken.src : null : null,
             isKeyPosition: !!(positionInfo && positionInfo.keyPosition),
             isValuePosition: !!(positionInfo && positionInfo.valuePosition),
-            isBetweenQuotes: !!(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === constants_1.Tokens.STRING),
+            isBetweenQuotes: !!(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === tokenizer_1.TokenType.STRING),
             shouldAddComma: !!shouldAddComma(positionInfo),
             isFileEmpty: tokens.length === 0
         };
