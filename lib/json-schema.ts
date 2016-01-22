@@ -53,10 +53,13 @@ export class SchemaRoot {
       }
     }
 
-    if ((schema.type === 'object' || (isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
-      return new ObjectSchema(schema, this);
-    } else if ((schema.type === 'array' || (isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
-      return new ArraySchema(schema, this);
+    if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
+      if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
+        return new ObjectSchema(schema, this);
+      }
+      else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
+        return new ArraySchema(schema, this);
+      }
     }
 
     if (isArray(schema.oneOf)) {

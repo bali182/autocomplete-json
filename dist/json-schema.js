@@ -43,11 +43,13 @@ var SchemaRoot = (function () {
                 oneOf: childSchemas
             };
         }
-        if ((schema.type === 'object' || (lodash_1.isObject(schema.properties)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
-            return new ObjectSchema(schema, this);
-        }
-        else if ((schema.type === 'array' || (lodash_1.isObject(schema.items)) && !schema.allOf && !schema.anyOf && !schema.oneOf && !schema.type)) {
-            return new ArraySchema(schema, this);
+        if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
+            if (schema.type === 'object' || (lodash_1.isObject(schema.properties) && !schema.type)) {
+                return new ObjectSchema(schema, this);
+            }
+            else if (schema.type === 'array' || (lodash_1.isObject(schema.items) && !schema.type)) {
+                return new ArraySchema(schema, this);
+            }
         }
         if (lodash_1.isArray(schema.oneOf)) {
             return new OneOfSchema(schema, this);
