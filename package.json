@@ -1,11 +1,11 @@
 {
-  "name": "autocomplete-semantic-json",
+  "name": "autocomplete-json",
   "main": "./dist/main",
   "version": "0.0.1",
   "description": "Atom autocomplete+ plugin for semantic JSON completions",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bali182/autocomplete-semantic-json.git"
+    "url": "git+https://github.com/bali182/autocomplete-json.git"
   },
   "keywords": [
     "atom",
@@ -19,9 +19,9 @@
   "author": "Balazs Edes",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/bali182/autocomplete-semantic-json/issues"
+    "url": "https://github.com/bali182/autocomplete-json/issues"
   },
-  "homepage": "https://github.com/bali182/autocomplete-semantic-json#readme",
+  "homepage": "https://github.com/bali182/autocomplete-json#readme",
   "dependencies": {
     "jaro-winkler": "^0.2.6",
     "lodash": "^3.10.1",
