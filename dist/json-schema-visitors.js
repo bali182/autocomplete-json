@@ -126,7 +126,8 @@ var ValueProposalVisitor = (function (_super) {
     ValueProposalVisitor.prototype.createBaseProposalFor = function (schema) {
         return {
             description: schema.getDescription(),
-            rightLabel: schema.getDisplayType()
+            rightLabel: schema.getDisplayType(),
+            type: 'value'
         };
     };
     ValueProposalVisitor.prototype.visitObjectSchema = function (schema, request) {
@@ -228,6 +229,7 @@ var KeyProposalVisitor = (function (_super) {
             .map(function (key) {
             var valueSchema = schema.getProperty(key);
             var proposal = {};
+            proposal.iconHTML = '<i class="icon-tag"></i>';
             proposal.description = valueSchema.getDescription();
             proposal.type = 'property';
             proposal.displayText = key;

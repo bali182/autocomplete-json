@@ -1,5 +1,5 @@
-import {BaseSchema, ArraySchema, ObjectSchema, BooleanSchema, NullSchema, EnumSchema, StringSchema, 
-        NumberSchema, CompositeSchema, AllOfSchema, AnyOfSchema, OneOfSchema, AnySchema} from './json-schema';
+import {BaseSchema, ArraySchema, ObjectSchema, BooleanSchema, NullSchema, EnumSchema, StringSchema,
+NumberSchema, CompositeSchema, AllOfSchema, AnyOfSchema, OneOfSchema, AnySchema} from './json-schema';
 import {IRequest, IProposal} from './provider-api.ts'
 import {flatten} from 'lodash'
 
@@ -148,7 +148,8 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
   createBaseProposalFor(schema: BaseSchema): IProposal {
     return {
       description: schema.getDescription(),
-      rightLabel: schema.getDisplayType()
+      rightLabel: schema.getDisplayType(),
+      type: 'value'
     }
   }
 
@@ -256,6 +257,7 @@ export class KeyProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<IPr
         const valueSchema = schema.getProperty(key);
         const proposal: IProposal = {};
 
+        proposal.iconHTML = '<i class="icon-tag"></i>';
         proposal.description = valueSchema.getDescription()
         proposal.type = 'property';
         proposal.displayText = key;
@@ -269,7 +271,7 @@ export class KeyProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<IPr
         return proposal;
       });
   }
-  
+
   visitCompositeSchema(schema: CompositeSchema, request: IRequest): Array<IProposal> {
     const proposals = schema.getSchemas()
       .filter(s => s instanceof ObjectSchema)
