@@ -41,7 +41,7 @@ function createVersionProposal(version: string, request: IRequest): IProposal {
   } else {
     proposal.snippet = '"' + version + '"' + (shouldAddComma ? ',' : '');
   }
-  proposal.iconHTML = '<i class="icon-version"></i>';
+  proposal.iconHTML = '<i class="icon-versions"></i>';
   return proposal;
 }
 

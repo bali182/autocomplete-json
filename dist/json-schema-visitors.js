@@ -126,7 +126,8 @@ var ValueProposalVisitor = (function (_super) {
     ValueProposalVisitor.prototype.createBaseProposalFor = function (schema) {
         return {
             description: schema.getDescription(),
-            rightLabel: schema.getDisplayType()
+            rightLabel: schema.getDisplayType(),
+            type: 'value'
         };
     };
     ValueProposalVisitor.prototype.visitObjectSchema = function (schema, request) {
