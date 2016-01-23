@@ -228,6 +228,7 @@ var KeyProposalVisitor = (function (_super) {
             .map(function (key) {
             var valueSchema = schema.getProperty(key);
             var proposal = {};
+            proposal.iconHTML = '<i class="icon-tag"></i>';
             proposal.description = valueSchema.getDescription();
             proposal.type = 'property';
             proposal.displayText = key;
