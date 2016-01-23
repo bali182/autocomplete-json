@@ -28,7 +28,8 @@
     "minimatch": "^3.0.0",
     "node-fetch": "^1.3.3",
     "query-string": "^3.0.0",
-    "tokenizer2": "^1.2.0"
+    "tokenizer2": "^1.2.0",
+    "valid-url": "^1.0.9"
   },
   "devDependencies": {
     "del": "^2.2.0",
@@ -40,7 +41,29 @@
   "providedServices": {
     "autocomplete.provider": {
       "versions": {
-        "2.0.0": "provide"
+        "2.0.0": "provideAutocomplete"
+      }
+    },
+    "jsonschema.provider": {
+      "versions": {
+        "1.0.0": "provideJsonSchemaProviders"
+      }
+    },
+    "jsonautocomplete.provider": {
+      "versions": {
+        "1.0.0": "provideProposalProviders"
+      }
+    }
+  },
+  "consumedServices": {
+    "jsonschema.provider": {
+      "versions": {
+        "1.0.0": "consumeJsonSchemaProviders"
+      }
+    },
+    "jsonautocomplete.provider": {
+      "versions": {
+        "1.0.0 ": "consumeJsonProposalProviders"
       }
     }
   }

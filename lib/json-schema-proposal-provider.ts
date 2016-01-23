@@ -1,18 +1,55 @@
-import {IProposalProvider, IRequest, IProposal} from './provider-api'
+import {IProposalProvider, IRequest, IProposal, IJsonSchemaProvider} from './provider-api'
 import {SchemaRoot} from './json-schema';
 import {JsonSchemaProposalFactory} from './json-schema-proposal-factory';
 import * as fs from 'fs';
 const fetch = require('node-fetch');
+const uriValidator = require('valid-url');
 
-export abstract class JsonSchemaProposalProvider implements IProposalProvider {
+function isLocalFile(uri: string) {
+  try {
+    fs.accessSync(uri, fs.F_OK);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function resolveLocalFile(uri: string) {
+  return new Promise<Object>((resolve, reject) => {
+    fs.readFile(uri, 'UTF-8', /* TODO think about detecting this */(error, data) => {
+      if (error) {
+        reject(error);
+      } else {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          reject(e);
+        }
+      }
+    });
+  });
+}
+
+function resolveSchemaObject(uri: string): Promise<Object> {
+  if (isLocalFile(uri)) {
+    return resolveLocalFile(uri);
+  } else if (uriValidator.isWebUri(uri)) {
+    return fetch(uri).then((data: any) => data.json());
+  }
+  console.warn(`Invalid schema location: ${uri}`);
+  return Promise.resolve({});
+}
+
+export class JsonSchemaProposalProvider implements IProposalProvider {
   private proposalFactory = new JsonSchemaProposalFactory();
   private schemaRoot: SchemaRoot = null;
 
-  constructor(schemaPromise: Promise<Object>) {
-    schemaPromise.then(schema => {
-      this.schemaRoot = new SchemaRoot(schema);
-      return schema;
-    });
+  constructor(private schemaProvider: IJsonSchemaProvider) {
+    resolveSchemaObject(schemaProvider.getSchemaURI())
+      .then(schemaObject => {
+        this.schemaRoot = new SchemaRoot(schemaObject);
+        return schemaObject;
+      });
   }
 
   getProposals(request: IRequest): Promise<IProposal> {
@@ -22,25 +59,7 @@ export abstract class JsonSchemaProposalProvider implements IProposalProvider {
     return Promise.resolve(this.proposalFactory.createProposals(request, this.schemaRoot));
   }
 
-  protected loadLocalSchema(location: string, encoding = 'UTF-8'): Promise<Object> {
-    return new Promise<Object>((resolve, reject) => {
-      fs.readFile(location, encoding, (error, data) => {
-        if (error) {
-          reject(error);
-        } else {
-          try {
-            resolve(JSON.parse(data));
-          } catch (e) {
-            reject(e);
-          }
-        }
-      });
-    });
+  getFilePattern() {
+    return this.schemaProvider.getFilePattern();
   }
-
-  protected loadRemoteSchema(url: string) {
-    return fetch(url).then((response: any) => response.json());
-  }
-
-  abstract getFilePattern(): string;
 }

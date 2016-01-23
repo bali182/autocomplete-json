@@ -25,7 +25,14 @@ export interface IProposal {
   descriptionMoreURL?: string
 }
 
-export interface IProposalProvider {
+export interface IFilePatternProvider {
   getFilePattern(): string;
+}
+
+export interface IProposalProvider extends IFilePatternProvider {
   getProposals(request: IRequest): Promise<Array<IProposal>>;
+}
+
+export interface IJsonSchemaProvider extends IFilePatternProvider {
+  getSchemaURI(): string;
 }
