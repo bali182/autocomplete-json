@@ -20,7 +20,8 @@ export function provideAutocomplete() {
 export function provideJsonSchemaProviders(): IJsonSchemaProvider | Array<IJsonSchemaProvider> {
   return [
     require('./providers/tsconfig/tsconfig-json-schema-proposal-provider').default,
-    require('./providers/package/package-json-schema-proposal-provider').default
+    require('./providers/package/package-json-schema-proposal-provider').default,
+    require('./providers/bower/bower-json-schema-proposal-provider').default
   ];
 }
 
