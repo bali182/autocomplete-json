@@ -3,18 +3,7 @@ import {SchemaRoot, StringSchema, NumberSchema, BaseSchema, BooleanSchema, EnumS
 import {IProposal, IRequest} from './provider-api'
 import {isObject, flatten} from 'lodash'
 import {KeyProposalVisitor, ValueProposalVisitor, SnippetProposalVisitor} from './json-schema-visitors';
-
-
-function resolveObject(segments: Array<string | number>, object: Object): any {
-  if (!isObject(object)) {
-    return null;
-  }
-  if (segments.length === 0) {
-    return object;
-  }
-  const [key, ...restOfSegments] = segments;
-  return resolveObject(restOfSegments, object[key]);
-}
+import {resolveObject} from './utils';
 
 export interface IProposalFactory {
   createProposals(request: IRequest, schema: SchemaRoot): Array<IProposal>

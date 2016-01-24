@@ -102,7 +102,7 @@ var BaseSchema = (function () {
         this.parent = parent;
         this.schemaRoot = schemaRoot;
     }
-    BaseSchema.prototype.getparent = function () {
+    BaseSchema.prototype.getParent = function () {
         return this.parent;
     };
     BaseSchema.prototype.getSchemaRoot = function () {

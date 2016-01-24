@@ -108,7 +108,7 @@ export class SchemaRoot {
 export abstract class BaseSchema implements ISchemaVisitee {
   constructor(protected schema: any, private parent: BaseSchema, private schemaRoot: SchemaRoot) { }
 
-  getparent(): BaseSchema {
+  getParent(): BaseSchema {
     return this.parent;
   }
 
