@@ -24,15 +24,15 @@ var SchemaRoot = (function () {
             }
             return resolveInternal(_this.schemaRoot, segments);
         });
-        this.schema = this.wrap(schemaRoot);
+        this.schema = this.wrap(schemaRoot, null);
     }
     SchemaRoot.prototype.getSchema = function () {
         return this.schema;
     };
-    SchemaRoot.prototype.wrap = function (schema) {
+    SchemaRoot.prototype.wrap = function (schema, parent) {
         if (!schema) {
             console.warn(schema + " schema found");
-            return new AnySchema({}, this);
+            return new AnySchema({}, parent, this);
         }
         if (schema.$ref) {
             schema = this.resolveRef(schema.$ref);
@@ -45,33 +45,33 @@ var SchemaRoot = (function () {
         }
         if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
             if (schema.type === 'object' || (lodash_1.isObject(schema.properties) && !schema.type)) {
-                return new ObjectSchema(schema, this);
+                return new ObjectSchema(schema, parent, this);
             }
             else if (schema.type === 'array' || (lodash_1.isObject(schema.items) && !schema.type)) {
-                return new ArraySchema(schema, this);
+                return new ArraySchema(schema, parent, this);
             }
         }
         if (lodash_1.isArray(schema.oneOf)) {
-            return new OneOfSchema(schema, this);
+            return new OneOfSchema(schema, parent, this);
         }
         else if (lodash_1.isArray(schema.anyOf)) {
-            return new AnyOfSchema(schema, this);
+            return new AnyOfSchema(schema, parent, this);
         }
         else if (lodash_1.isArray(schema.allOf)) {
-            return new AllOfSchema(schema, this);
+            return new AllOfSchema(schema, parent, this);
         }
         else if (lodash_1.isObject(schema.enum)) {
-            return new EnumSchema(schema, this);
+            return new EnumSchema(schema, parent, this);
         }
         switch (schema.type) {
-            case 'boolean': return new BooleanSchema(schema, this);
-            case 'number': return new NumberSchema(schema, this);
-            case 'integer': return new NumberSchema(schema, this);
-            case 'string': return new StringSchema(schema, this);
-            case 'null': return new NullSchema(schema, this);
+            case 'boolean': return new BooleanSchema(schema, parent, this);
+            case 'number': return new NumberSchema(schema, parent, this);
+            case 'integer': return new NumberSchema(schema, parent, this);
+            case 'string': return new StringSchema(schema, parent, this);
+            case 'null': return new NullSchema(schema, parent, this);
         }
         console.warn("Illegal schema part: " + JSON.stringify(schema));
-        return new AnySchema({}, this);
+        return new AnySchema({}, parent, this);
     };
     SchemaRoot.prototype.getPossibleTypes = function (segments) {
         var _this = this;
@@ -97,12 +97,14 @@ var SchemaRoot = (function () {
 })();
 exports.SchemaRoot = SchemaRoot;
 var BaseSchema = (function () {
-    function BaseSchema(schema, schemaRoot) {
+    function BaseSchema(schema, parent, schemaRoot) {
         this.schema = schema;
-        this.schemaRoot = schemaRoot;
-        this.schema = schema;
+        this.parent = parent;
         this.schemaRoot = schemaRoot;
     }
+    BaseSchema.prototype.getparent = function () {
+        return this.parent;
+    };
     BaseSchema.prototype.getSchemaRoot = function () {
         return this.schemaRoot;
     };
@@ -114,13 +116,13 @@ var BaseSchema = (function () {
 exports.BaseSchema = BaseSchema;
 var ObjectSchema = (function (_super) {
     __extends(ObjectSchema, _super);
-    function ObjectSchema(schema, schemaRoot) {
+    function ObjectSchema(schema, parent, schemaRoot) {
         var _this = this;
-        _super.call(this, schema, schemaRoot);
+        _super.call(this, schema, parent, schemaRoot);
         var properties = this.schema.properties || {};
         this.keys = Object.keys(properties);
         this.properties = this.keys.reduce(function (object, key) {
-            object[key] = _this.getSchemaRoot().wrap(properties[key]);
+            object[key] = _this.getSchemaRoot().wrap(properties[key], _this);
             return object;
         }, {});
     }
@@ -147,9 +149,9 @@ var ObjectSchema = (function (_super) {
 exports.ObjectSchema = ObjectSchema;
 var ArraySchema = (function (_super) {
     __extends(ArraySchema, _super);
-    function ArraySchema(schema, schemaRoot) {
-        _super.call(this, schema, schemaRoot);
-        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items);
+    function ArraySchema(schema, parent, schemaRoot) {
+        _super.call(this, schema, parent, schemaRoot);
+        this.itemSchema = this.getSchemaRoot().wrap(this.schema.items, this);
     }
     ArraySchema.prototype.getItemSchema = function () {
         return this.itemSchema;
@@ -159,6 +161,9 @@ var ArraySchema = (function (_super) {
     };
     ArraySchema.prototype.accept = function (visitor, parameter) {
         return visitor.visitArraySchema(this, parameter);
+    };
+    ArraySchema.prototype.hasUniqueItems = function () {
+        return !!(this.schema.uniqueItems || false);
     };
     ArraySchema.prototype.getDisplayType = function () {
         var itemSchemaType = this.getItemSchema() && this.getItemSchema().getDisplayType()
@@ -191,10 +196,10 @@ var EnumSchema = (function (_super) {
 exports.EnumSchema = EnumSchema;
 var CompositeSchema = (function (_super) {
     __extends(CompositeSchema, _super);
-    function CompositeSchema(schema, schemaRoot, keyWord) {
+    function CompositeSchema(schema, parent, schemaRoot, keyWord) {
         var _this = this;
-        _super.call(this, schema, schemaRoot);
-        this.schemas = schema[keyWord].map(function (schema) { return _this.getSchemaRoot().wrap(schema); });
+        _super.call(this, schema, parent, schemaRoot);
+        this.schemas = schema[keyWord].map(function (schema) { return _this.getSchemaRoot().wrap(schema, _this); });
     }
     CompositeSchema.prototype.getSchemas = function () {
         return this.schemas;
@@ -210,8 +215,8 @@ var CompositeSchema = (function (_super) {
 exports.CompositeSchema = CompositeSchema;
 var AnyOfSchema = (function (_super) {
     __extends(AnyOfSchema, _super);
-    function AnyOfSchema(schema, schemaRoot) {
-        _super.call(this, schema, schemaRoot, 'anyOf');
+    function AnyOfSchema(schema, parent, schemaRoot) {
+        _super.call(this, schema, parent, schemaRoot, 'anyOf');
     }
     AnyOfSchema.prototype.accept = function (visitor, parameter) {
         return visitor.visitAnyOfSchema(this, parameter);
@@ -221,8 +226,8 @@ var AnyOfSchema = (function (_super) {
 exports.AnyOfSchema = AnyOfSchema;
 var AllOfSchema = (function (_super) {
     __extends(AllOfSchema, _super);
-    function AllOfSchema(schema, schemaRoot) {
-        _super.call(this, schema, schemaRoot, 'allOf');
+    function AllOfSchema(schema, parent, schemaRoot) {
+        _super.call(this, schema, parent, schemaRoot, 'allOf');
     }
     AllOfSchema.prototype.accept = function (visitor, parameter) {
         return visitor.visitAllOfSchema(this, parameter);
@@ -232,8 +237,8 @@ var AllOfSchema = (function (_super) {
 exports.AllOfSchema = AllOfSchema;
 var OneOfSchema = (function (_super) {
     __extends(OneOfSchema, _super);
-    function OneOfSchema(schema, schemaRoot) {
-        _super.call(this, schema, schemaRoot, 'oneOf');
+    function OneOfSchema(schema, parent, schemaRoot) {
+        _super.call(this, schema, parent, schemaRoot, 'oneOf');
     }
     OneOfSchema.prototype.accept = function (visitor, parameter) {
         return visitor.visitOneOfSchema(this, parameter);
