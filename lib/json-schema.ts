@@ -33,13 +33,13 @@ export class SchemaRoot {
       }
       return resolveInternal(this.schemaRoot, segments);
     });
-    this.schema = this.wrap(schemaRoot);
+    this.schema = this.wrap(schemaRoot, null);
   }
 
-  wrap(schema: any): BaseSchema {
+  wrap(schema: any, parent: BaseSchema): BaseSchema {
     if (!schema) {
       console.warn(`${schema} schema found`);
-      return new AnySchema({}, this);
+      return new AnySchema({}, parent, this);
     }
 
     if (schema.$ref) {
@@ -55,32 +55,32 @@ export class SchemaRoot {
 
     if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
       if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
-        return new ObjectSchema(schema, this);
+        return new ObjectSchema(schema, parent, this);
       }
       else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
-        return new ArraySchema(schema, this);
+        return new ArraySchema(schema, parent, this);
       }
     }
 
     if (isArray(schema.oneOf)) {
-      return new OneOfSchema(schema, this);
+      return new OneOfSchema(schema, parent, this);
     } else if (isArray(schema.anyOf)) {
-      return new AnyOfSchema(schema, this);
+      return new AnyOfSchema(schema, parent, this);
     } else if (isArray(schema.allOf)) {
-      return new AllOfSchema(schema, this);
+      return new AllOfSchema(schema, parent, this);
     } else if (isObject(schema.enum)) {
-      return new EnumSchema(schema, this);
+      return new EnumSchema(schema, parent, this);
     }
 
     switch (schema.type) {
-      case 'boolean': return new BooleanSchema(schema, this);
-      case 'number': return new NumberSchema(schema, this);
-      case 'integer': return new NumberSchema(schema, this);
-      case 'string': return new StringSchema(schema, this);
-      case 'null': return new NullSchema(schema, this);
+      case 'boolean': return new BooleanSchema(schema, parent, this);
+      case 'number': return new NumberSchema(schema, parent, this);
+      case 'integer': return new NumberSchema(schema, parent, this);
+      case 'string': return new StringSchema(schema, parent, this);
+      case 'null': return new NullSchema(schema, parent, this);
     }
     console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
-    return new AnySchema({}, this);
+    return new AnySchema({}, parent, this);
   }
 
   getPossibleTypes(segments: Array<number | string>) {
@@ -106,9 +106,10 @@ export class SchemaRoot {
 }
 
 export abstract class BaseSchema implements ISchemaVisitee {
-  constructor(public schema: any, private schemaRoot: SchemaRoot) {
-    this.schema = schema;
-    this.schemaRoot = schemaRoot;
+  constructor(protected schema: any, private parent: BaseSchema, private schemaRoot: SchemaRoot) { }
+
+  getParent(): BaseSchema {
+    return this.parent;
   }
 
   getSchemaRoot() {
@@ -128,12 +129,12 @@ export class ObjectSchema extends BaseSchema {
   private keys: Array<string>;
   private properties: Dictionary<BaseSchema>;
 
-  constructor(schema: Object, schemaRoot: SchemaRoot) {
-    super(schema, schemaRoot);
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
+    super(schema, parent, schemaRoot);
     const properties = this.schema.properties || {};
     this.keys = Object.keys(properties);
     this.properties = this.keys.reduce((object, key) => {
-      object[key] = this.getSchemaRoot().wrap(properties[key])
+      object[key] = this.getSchemaRoot().wrap(properties[key], this)
       return object;
     }, <Dictionary<BaseSchema>>{});
   }
@@ -165,9 +166,9 @@ export class ObjectSchema extends BaseSchema {
 export class ArraySchema extends BaseSchema {
   private itemSchema: BaseSchema;
 
-  constructor(schema: Object, schemaRoot: SchemaRoot) {
-    super(schema, schemaRoot);
-    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items)
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
+    super(schema, parent, schemaRoot);
+    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items, this)
   }
 
   getItemSchema() {
@@ -180,6 +181,10 @@ export class ArraySchema extends BaseSchema {
 
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
     return visitor.visitArraySchema(this, parameter);
+  }
+
+  hasUniqueItems(): boolean {
+    return !!(this.schema.uniqueItems || false);
   }
 
   getDisplayType() {
@@ -210,9 +215,9 @@ export class EnumSchema extends BaseSchema {
 
 export abstract class CompositeSchema extends BaseSchema {
   private schemas: Array<BaseSchema>;
-  constructor(schema: Object, schemaRoot: SchemaRoot, keyWord: string) {
-    super(schema, schemaRoot);
-    this.schemas = schema[keyWord].map((schema: any) => this.getSchemaRoot().wrap(schema));
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, keyWord: string) {
+    super(schema, parent, schemaRoot);
+    this.schemas = schema[keyWord].map((schema: any) => this.getSchemaRoot().wrap(schema, this));
   }
 
   getSchemas() {
@@ -231,8 +236,8 @@ export abstract class CompositeSchema extends BaseSchema {
 }
 
 export class AnyOfSchema extends CompositeSchema {
-  constructor(schema: Object, schemaRoot: SchemaRoot) {
-    super(schema, schemaRoot, 'anyOf');
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
+    super(schema, parent, schemaRoot, 'anyOf');
   }
 
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
@@ -241,8 +246,8 @@ export class AnyOfSchema extends CompositeSchema {
 }
 
 export class AllOfSchema extends CompositeSchema {
-  constructor(schema: Object, schemaRoot: SchemaRoot) {
-    super(schema, schemaRoot, 'allOf');
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
+    super(schema, parent, schemaRoot, 'allOf');
   }
 
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
@@ -251,8 +256,8 @@ export class AllOfSchema extends CompositeSchema {
 }
 
 export class OneOfSchema extends CompositeSchema {
-  constructor(schema: Object, schemaRoot: SchemaRoot) {
-    super(schema, schemaRoot, 'oneOf');
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
+    super(schema, parent, schemaRoot, 'oneOf');
   }
 
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {

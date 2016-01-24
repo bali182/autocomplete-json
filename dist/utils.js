@@ -1,3 +1,4 @@
+var lodash_1 = require('lodash');
 var ArrayTraverser = (function () {
     function ArrayTraverser(array, index) {
         if (array === void 0) { array = []; }
@@ -112,3 +113,14 @@ var ValueHolder = (function () {
     return ValueHolder;
 })();
 exports.ValueHolder = ValueHolder;
+function resolveObject(segments, object) {
+    if (!lodash_1.isObject(object)) {
+        return null;
+    }
+    if (segments.length === 0) {
+        return object;
+    }
+    var key = segments[0], restOfSegments = segments.slice(1);
+    return resolveObject(restOfSegments, object[key]);
+}
+exports.resolveObject = resolveObject;

@@ -1,6 +1,7 @@
 import {BaseSchema, ArraySchema, ObjectSchema, BooleanSchema, NullSchema, EnumSchema, StringSchema,
 NumberSchema, CompositeSchema, AllOfSchema, AnyOfSchema, OneOfSchema, AnySchema} from './json-schema';
-import {IRequest, IProposal} from './provider-api.ts'
+import {IRequest, IProposal} from './provider-api'
+import {resolveObject} from './utils'
 import {flatten} from 'lodash'
 
 /** Visitor interface for JSON schema parts */
@@ -210,8 +211,16 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
   }
 
   visitEnumSchema(schema: EnumSchema, request: IRequest): Array<IProposal> {
-    return schema.getValues()
-      .map(enumValue => {
+    const {segments, contents} = request;
+    const parent = schema.getParent();
+    let possibleValues = schema.getValues();
+    
+    if ((parent instanceof ArraySchema) && (<ArraySchema>parent).hasUniqueItems()) {
+      const alreadyPresentValues: Array<string> = resolveObject(segments.slice(0, segments.length - 1), contents) || [];
+      possibleValues = possibleValues.filter(value => alreadyPresentValues.indexOf(value) < 0);
+    }
+    
+    return possibleValues.map(enumValue => {
         const proposal = this.createBaseProposalFor(schema);
         proposal.displayText = enumValue;
         if (request.isBetweenQuotes) {

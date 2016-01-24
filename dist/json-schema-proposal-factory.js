@@ -1,21 +1,12 @@
 var lodash_1 = require('lodash');
 var json_schema_visitors_1 = require('./json-schema-visitors');
-function resolveObject(segments, object) {
-    if (!lodash_1.isObject(object)) {
-        return null;
-    }
-    if (segments.length === 0) {
-        return object;
-    }
-    var key = segments[0], restOfSegments = segments.slice(1);
-    return resolveObject(restOfSegments, object[key]);
-}
+var utils_1 = require('./utils');
 var KeyProposalFactory = (function () {
     function KeyProposalFactory() {
     }
     KeyProposalFactory.prototype.createProposals = function (request, schema) {
         var contents = request.contents, segments = request.segments;
-        var unwrappedContents = resolveObject(segments, contents);
+        var unwrappedContents = utils_1.resolveObject(segments, contents);
         var visitor = new json_schema_visitors_1.KeyProposalVisitor(unwrappedContents, new json_schema_visitors_1.SnippetProposalVisitor());
         var proposals = schema.getPossibleTypes(segments)
             .map(function (s) { return s.accept(visitor, request); });
