@@ -4,15 +4,27 @@
   "type": "object",
   "definitions": {
     "person": {
-      "name": {
-        "type": "string"
-      },
-      "email": {
-        "type": "string"
-      },
-      "homepage": {
-        "type": "string"
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "homepage": {
+          "type": "string"
+        }
       }
+    },
+    "moduleType": {
+      "enum": [
+        "amd",
+        "es6",
+        "globals",
+        "node",
+        "yui"
+      ]
     }
   },
   "required": [
@@ -57,16 +69,25 @@
     },
     "license": {
       "description": "SPDX license identifier or path/url to a license.",
-      "type": [
-        "string",
-        "array"
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       ],
       "maxLength": 140
     },
     "ignore": {
       "description": "A list of files for Bower to ignore when installing your package.",
       "anyOf": [
-        {"type": "string"},
+        {
+          "type": "string"
+        },
         {
           "type": "array",
           "items": {
@@ -155,27 +176,15 @@
     },
     "moduleType": {
       "description": "The types of modules this package exposes",
-      "uniqueItems": true,
       "oneOf": [
         {
-          "enum": [
-            "amd",
-            "es6",
-            "globals",
-            "node",
-            "yui"
-          ]
+          "$ref": "#/definitions/moduleType"
         },
         {
+          "uniqueItems": true,
           "type": "array",
           "items": {
-            "enum": [
-              "amd",
-              "es6",
-              "globals",
-              "node",
-              "yui"
-            ]
+            "$ref": "#/definitions/moduleType"
           }
         }
       ]
