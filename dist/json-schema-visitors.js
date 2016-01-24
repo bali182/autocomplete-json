@@ -4,6 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var json_schema_1 = require('./json-schema');
+var utils_1 = require('./utils');
 var lodash_1 = require('lodash');
 var DefaultSchemaVisitor = (function () {
     function DefaultSchemaVisitor(defaultVisit) {
@@ -183,8 +184,14 @@ var ValueProposalVisitor = (function (_super) {
     };
     ValueProposalVisitor.prototype.visitEnumSchema = function (schema, request) {
         var _this = this;
-        return schema.getValues()
-            .map(function (enumValue) {
+        var segments = request.segments, contents = request.contents;
+        var parent = schema.getParent();
+        var possibleValues = schema.getValues();
+        if ((parent instanceof json_schema_1.ArraySchema) && parent.hasUniqueItems()) {
+            var alreadyPresentValues = utils_1.resolveObject(segments.slice(0, segments.length - 1), contents) || [];
+            possibleValues = possibleValues.filter(function (value) { return alreadyPresentValues.indexOf(value) < 0; });
+        }
+        return possibleValues.map(function (enumValue) {
             var proposal = _this.createBaseProposalFor(schema);
             proposal.displayText = enumValue;
             if (request.isBetweenQuotes) {
