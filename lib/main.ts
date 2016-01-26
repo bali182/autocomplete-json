@@ -21,14 +21,17 @@ export function provideJsonSchemaProviders(): IJsonSchemaProvider | Array<IJsonS
   return [
     require('./providers/tsconfig/tsconfig-json-schema-proposal-provider').default,
     require('./providers/package/package-json-schema-proposal-provider').default,
-    require('./providers/bower/bower-json-schema-proposal-provider').default
+    require('./providers/bower/bower-json-schema-proposal-provider').default,
+    require('./providers/babelrc/babelrc-json-schema-proposal-provider').default
   ];
 }
 
 export function provideProposalProviders(): IJsonSchemaProvider | Array<IJsonSchemaProvider> {
   const PackageJsonDependecyProposalProvider = require('./providers/package-dependencies/package-json-dependency-proposal-provider').default;
+  const BabelRCPresetProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
   return [
-    new PackageJsonDependecyProposalProvider()
+    new PackageJsonDependecyProposalProvider(),
+    new BabelRCPresetProposalProvider()
   ];
 }
 

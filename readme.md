@@ -7,6 +7,8 @@ This package enables semantic autocompletion for JSON files.
 
 1. `package.json` - for node package configuration
 2. `tsconfig.json` - for TypeScript project configuration
+3. `bower.json` - for bower configuration **(package completions missing - need help with versions)**
+3. `babelrc.json` - for babel 6+ configuration
 
 #proposals for your json
 This package provides a very convenient way to add support for your own json completions, but

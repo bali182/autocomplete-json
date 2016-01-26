@@ -1,5 +1,5 @@
 var lodash_1 = require('lodash');
-var npm_service_1 = require('./npm-service');
+var _a = require('npm-package-lookup'), search = _a.search, versions = _a.versions;
 var DEPENDENCY_PROPERTIES = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 var STABLE_VERSION_REGEX = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/;
 var EMPTY_OBJECT = {};
@@ -72,7 +72,7 @@ var PackageJsonDependencyProposalProvider = (function () {
     PackageJsonDependencyProposalProvider.prototype.getDependencyKeysProposals = function (request) {
         var _this = this;
         var prefix = request.prefix;
-        return npm_service_1.search(prefix).then(function (packageNames) { return _this.transformPackageNames(packageNames, request); });
+        return search(prefix).then(function (packageNames) { return _this.transformPackageNames(packageNames, request); });
     };
     PackageJsonDependencyProposalProvider.prototype.transformPackageVersions = function (packageVersions, request) {
         var token = request.token;
@@ -86,7 +86,7 @@ var PackageJsonDependencyProposalProvider = (function () {
         var _this = this;
         var segments = request.segments, token = request.token;
         var packageName = segments[1], rest = segments.slice(2);
-        return npm_service_1.versions(packageName.toString())
+        return versions(packageName.toString())
             .then(function (packageVersions) { return _this.transformPackageVersions(packageVersions, request); });
     };
     PackageJsonDependencyProposalProvider.prototype.getFilePattern = function () {
