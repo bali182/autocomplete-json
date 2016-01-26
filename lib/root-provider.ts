@@ -4,6 +4,7 @@ import {tokenize, TokenType} from './tokenizer';
 import {provideStructure, IStructureInfo} from './structure-provider';
 import {PositionInfo} from './utils';
 import {IProposalProvider, IRequest, IProposal} from './provider-api'
+import {TokenTraverser} from './token-traverser'
 
 export default class RootProvider {
   public selector: string = '.source.json';
@@ -12,6 +13,9 @@ export default class RootProvider {
   constructor(private providers: Array<IProposalProvider> = []) { }
 
   getSuggestions({editor, bufferPosition, activatedManually, prefix}): Promise<IProposal> {
+    const lines = editor.displayBuffer.getTokenizedLines();
+    const traverser = new TokenTraverser(lines);
+    
     if (editor.lineTextForBufferRow(bufferPosition.row).charAt(bufferPosition.column - 1) === ',' && !activatedManually) {
       return Promise.resolve([]); // hack, to prevent activation right after inserting a comma
     }

@@ -2,6 +2,7 @@ var minimatch = require('minimatch');
 var _ = require('lodash');
 var tokenizer_1 = require('./tokenizer');
 var structure_provider_1 = require('./structure-provider');
+var token_traverser_1 = require('./token-traverser');
 var RootProvider = (function () {
     function RootProvider(providers) {
         if (providers === void 0) { providers = []; }
@@ -12,6 +13,8 @@ var RootProvider = (function () {
     RootProvider.prototype.getSuggestions = function (_a) {
         var _this = this;
         var editor = _a.editor, bufferPosition = _a.bufferPosition, activatedManually = _a.activatedManually, prefix = _a.prefix;
+        var lines = editor.displayBuffer.getTokenizedLines();
+        var traverser = new token_traverser_1.TokenTraverser(lines);
         if (editor.lineTextForBufferRow(bufferPosition.row).charAt(bufferPosition.column - 1) === ',' && !activatedManually) {
             return Promise.resolve([]);
         }
