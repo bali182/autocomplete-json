@@ -21,7 +21,7 @@ function provideJsonSchemaProviders() {
 }
 exports.provideJsonSchemaProviders = provideJsonSchemaProviders;
 function provideProposalProviders() {
-    var PackageJsonDependecyProposalProvider = require('./providers/package-dependencies/package-json-dependency-proposal-provider').default;
+    var PackageJsonDependecyProposalProvider = require('./providers/package/package-json-dependency-proposal-provider').default;
     var BabelRCPresetsProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
     var BabelRCPluginsProposalProvider = require('./providers/babelrc/babelrc-plugins-proposal-provider').default;
     return [
