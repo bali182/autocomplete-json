@@ -94,17 +94,7 @@
     "plugins": {
       "description": "List of plugins to load and use",
       "minItems": 1,
-      "type": "array",
-      "items": {
-        "oneOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "array"
-          }
-        ]
-      }
+      "type": "array"
     },
     "presets": {
       "description": "List of presets (a set of plugins) to load and use",

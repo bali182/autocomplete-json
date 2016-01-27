@@ -11,7 +11,7 @@ var BabelRCPresetsProposalProvider = (function () {
             var presets = contents[PRESETS] || [];
             var results = search(this.calculateSearchKeyword(prefix));
             return results.then(function (names) {
-                return names.map(function (presetName) {
+                return names.filter(function (name) { return presets.indexOf(name.replace(BABEL_PRESET, '')) < 0; }).map(function (presetName) {
                     var name = presetName.replace(BABEL_PRESET, '');
                     var proposal = {};
                     proposal.displayText = name;

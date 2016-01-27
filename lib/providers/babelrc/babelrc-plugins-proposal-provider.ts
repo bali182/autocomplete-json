@@ -2,23 +2,23 @@ import {IProposal, IProposalProvider, IRequest} from '../../provider-api';
 import {includes, isString, isNumber, trim, startsWith, flatten} from 'lodash';
 const {search} = require('npm-package-lookup');
 
-const PRESETS = 'presets';
-const BABEL_PRESET = 'babel-preset-';
+const PLUGINS = 'plugins';
+const BABEL_PLUGIN = 'babel-plugin-';
 
-export default class BabelRCPresetsProposalProvider implements IProposalProvider {
+export default class BabelRCPluginsProposalProvider implements IProposalProvider {
   getProposals(request: IRequest): Promise<Array<IProposal>> {
     const {segments, contents, prefix, isBetweenQuotes, shouldAddComma} = request;
-    if (segments && contents && segments.length === 2 && segments[0] === PRESETS && isNumber(segments[1])) {
-      const presets: Array<string> = contents[PRESETS] || [];
+    if (segments && contents && segments.length === 2 && segments[0] === PLUGINS && isNumber(segments[1])) {
+      const plugins: Array<string> = contents[PLUGINS] || [];
       const results: Promise<Array<string>> = search(this.calculateSearchKeyword(prefix));
       return results.then(names => {
-        return names.filter(name => presets.indexOf(name.replace(BABEL_PRESET, '')) < 0).map(presetName => {
-          const name = presetName.replace(BABEL_PRESET, '');
+        return names.filter(name => plugins.indexOf(name.replace(BABEL_PLUGIN, '')) < 0).map(pluginName => {
+          const name = pluginName.replace(BABEL_PLUGIN, '');
           const proposal: IProposal = {};
           proposal.displayText = name;
-          proposal.rightLabel = 'preset';
-          proposal.type = 'preset';
-          proposal.description = `${name} babel preset. Required dependency in package.json: ${presetName}`;
+          proposal.rightLabel = 'plugin';
+          proposal.type = 'plugin';
+          proposal.description = `${name} babel plugin. Required dependency in package.json: ${pluginName}`;
           if (isBetweenQuotes) {
             proposal.text = name;
           } else {
@@ -32,12 +32,12 @@ export default class BabelRCPresetsProposalProvider implements IProposalProvider
   }
 
   calculateSearchKeyword(prefix: string) {
-    if (startsWith(BABEL_PRESET, prefix)) {
-      return BABEL_PRESET;
-    } else if (startsWith(prefix, BABEL_PRESET)) {
+    if (startsWith(BABEL_PLUGIN, prefix)) {
+      return BABEL_PLUGIN;
+    } else if (startsWith(prefix, BABEL_PLUGIN)) {
       return prefix;
     } else {
-      return BABEL_PRESET + prefix;
+      return BABEL_PLUGIN + prefix;
     }
   }
 

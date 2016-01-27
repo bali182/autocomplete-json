@@ -22,10 +22,12 @@ function provideJsonSchemaProviders() {
 exports.provideJsonSchemaProviders = provideJsonSchemaProviders;
 function provideProposalProviders() {
     var PackageJsonDependecyProposalProvider = require('./providers/package-dependencies/package-json-dependency-proposal-provider').default;
-    var BabelRCPresetProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
+    var BabelRCPresetsProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
+    var BabelRCPluginsProposalProvider = require('./providers/babelrc/babelrc-plugins-proposal-provider').default;
     return [
         new PackageJsonDependecyProposalProvider(),
-        new BabelRCPresetProposalProvider()
+        new BabelRCPresetsProposalProvider(),
+        new BabelRCPluginsProposalProvider()
     ];
 }
 exports.provideProposalProviders = provideProposalProviders;

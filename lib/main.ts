@@ -28,10 +28,12 @@ export function provideJsonSchemaProviders(): IJsonSchemaProvider | Array<IJsonS
 
 export function provideProposalProviders(): IJsonSchemaProvider | Array<IJsonSchemaProvider> {
   const PackageJsonDependecyProposalProvider = require('./providers/package-dependencies/package-json-dependency-proposal-provider').default;
-  const BabelRCPresetProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
+  const BabelRCPresetsProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
+  const BabelRCPluginsProposalProvider = require('./providers/babelrc/babelrc-plugins-proposal-provider').default;
   return [
     new PackageJsonDependecyProposalProvider(),
-    new BabelRCPresetProposalProvider()
+    new BabelRCPresetsProposalProvider(),
+    new BabelRCPluginsProposalProvider()
   ];
 }
 
