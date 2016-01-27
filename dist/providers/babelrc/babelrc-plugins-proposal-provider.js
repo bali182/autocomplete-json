@@ -42,7 +42,7 @@ var BabelRCPluginsProposalProvider = (function () {
         }
     };
     BabelRCPluginsProposalProvider.prototype.getFilePattern = function () {
-        return 'babelrc.json';
+        return '.babelrc';
     };
     return BabelRCPluginsProposalProvider;
 })();

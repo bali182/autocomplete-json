@@ -6,6 +6,6 @@ export default {
   },
   
   getFilePattern() {
-    return 'babelrc.json';
+    return '.babelrc';
   }
 };
