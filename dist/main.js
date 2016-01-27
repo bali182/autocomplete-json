@@ -15,14 +15,19 @@ function provideJsonSchemaProviders() {
     return [
         require('./providers/tsconfig/tsconfig-json-schema-proposal-provider').default,
         require('./providers/package/package-json-schema-proposal-provider').default,
-        require('./providers/bower/bower-json-schema-proposal-provider').default
+        require('./providers/bower/bower-json-schema-proposal-provider').default,
+        require('./providers/babelrc/babelrc-json-schema-proposal-provider').default
     ];
 }
 exports.provideJsonSchemaProviders = provideJsonSchemaProviders;
 function provideProposalProviders() {
     var PackageJsonDependecyProposalProvider = require('./providers/package-dependencies/package-json-dependency-proposal-provider').default;
+    var BabelRCPresetsProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
+    var BabelRCPluginsProposalProvider = require('./providers/babelrc/babelrc-plugins-proposal-provider').default;
     return [
-        new PackageJsonDependecyProposalProvider()
+        new PackageJsonDependecyProposalProvider(),
+        new BabelRCPresetsProposalProvider(),
+        new BabelRCPluginsProposalProvider()
     ];
 }
 exports.provideProposalProviders = provideProposalProviders;

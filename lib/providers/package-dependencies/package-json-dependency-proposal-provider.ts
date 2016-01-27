@@ -1,6 +1,6 @@
 import {IProposal, IProposalProvider, IRequest} from '../../provider-api';
 import {includes, isString, trim, startsWith, flatten} from 'lodash';
-import {search, versions} from './npm-service';
+const {search, versions} = require('npm-package-lookup');
 
 const DEPENDENCY_PROPERTIES = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 const STABLE_VERSION_REGEX = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/;
@@ -79,7 +79,7 @@ export default class PackageJsonDependencyProposalProvider implements IProposalP
 
   getDependencyKeysProposals(request: IRequest): Promise<Array<IProposal>> {
     const {prefix} = request;
-    return search(prefix).then(packageNames => this.transformPackageNames(packageNames, request));
+    return search(prefix).then((packageNames: Array<string>) => this.transformPackageNames(packageNames, request));
   }
 
   transformPackageVersions(packageVersions: Array<string>, request: IRequest): Array<IProposal> {
@@ -95,7 +95,7 @@ export default class PackageJsonDependencyProposalProvider implements IProposalP
     const {segments, token} = request;
     const [, packageName, ...rest] = segments;
     return versions(packageName.toString())
-      .then(packageVersions => this.transformPackageVersions(packageVersions, request))
+      .then((packageVersions: Array<string>) => this.transformPackageVersions(packageVersions, request))
   }
 
   getFilePattern() {
