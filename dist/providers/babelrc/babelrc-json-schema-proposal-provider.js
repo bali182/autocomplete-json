@@ -5,6 +5,6 @@ exports.default = {
         return path.join(__dirname, './babelrc-schema.json');
     },
     getFilePattern: function () {
-        return 'babelrc.json';
+        return '.babelrc';
     }
 };

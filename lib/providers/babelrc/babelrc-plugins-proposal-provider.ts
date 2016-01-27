@@ -42,6 +42,6 @@ export default class BabelRCPluginsProposalProvider implements IProposalProvider
   }
 
   getFilePattern() {
-    return 'babelrc.json';
+    return '.babelrc';
   }
 }
