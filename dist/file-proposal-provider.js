@@ -57,8 +57,8 @@ var FileProposalProvider = (function () {
             return Promise.resolve([]);
         }
         var dir = request.editor.getBuffer().file.getParent().path;
-        var prefix = request.prefix, token = request.token;
-        var searchDir = getDirectoryName(dir, lodash_1.trim(token, '"'));
+        var prefix = request.prefix;
+        var searchDir = getDirectoryName(dir, prefix);
         if (searchDir === null) {
             return Promise.resolve([]);
         }

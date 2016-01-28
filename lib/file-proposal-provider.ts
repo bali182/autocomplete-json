@@ -1,6 +1,6 @@
 import {IMatcher} from './matchers';
 import {IProposalProvider, IRequest, IProposal} from './provider-api';
-import {isEmpty, trim, trimLeft, endsWith, last} from 'lodash';
+import {isEmpty, trimLeft, endsWith, last} from 'lodash';
 import {sep} from 'path';
 import * as fs from 'fs';
 
@@ -70,8 +70,8 @@ export abstract class FileProposalProvider implements IProposalProvider {
       return Promise.resolve([]);
     }
     const dir = request.editor.getBuffer().file.getParent().path;
-    const {prefix, token} = request; // TODO find a better way to get the prefix!!!
-    const searchDir = getDirectoryName(dir, trim(token, '"'));
+    const {prefix} = request; // TODO find a better way to get the prefix!!!
+    const searchDir = getDirectoryName(dir, prefix);
     if (searchDir === null) {
       return Promise.resolve([]);
     }

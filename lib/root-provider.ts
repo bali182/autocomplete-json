@@ -1,5 +1,5 @@
 import * as minimatch from 'minimatch';
-import * as _ from 'lodash';
+import {includes, trimLeft} from 'lodash';
 import {tokenize, TokenType} from './tokenizer';
 import {provideStructure, IStructureInfo} from './structure-provider';
 import {PositionInfo} from './utils';
@@ -11,7 +11,9 @@ export default class RootProvider {
 
   constructor(private providers: Array<IProposalProvider> = []) { }
 
-  getSuggestions({editor, bufferPosition, activatedManually, prefix}): Promise<Array<IProposal>> {
+  getSuggestions(originalRequest: any): Promise<Array<IProposal>> {
+    const {editor, bufferPosition, activatedManually, prefix} = originalRequest;
+
     if (editor.lineTextForBufferRow(bufferPosition.row).charAt(bufferPosition.column - 1) === ',' && !activatedManually) {
       return Promise.resolve([]); // hack, to prevent activation right after inserting a comma
     }
@@ -23,28 +25,37 @@ export default class RootProvider {
     return tokenize(editor.getText())
       .then(tokens => provideStructure(tokens, bufferPosition))
       .then(structure => {
-        const request = this.buildRequest(structure, prefix, editor);
+        const request = this.buildRequest(structure, originalRequest);
         return Promise.all(providers.map(provider => provider.getProposals(request)))
           .then(proposals => Array.prototype.concat.apply([], proposals));
       });
   }
 
-  buildRequest(structure: IStructureInfo, prefix: string, editor: AtomCore.IEditor): IRequest {
+  buildRequest(structure: IStructureInfo, originalRequest: any): IRequest {
     const {contents, positionInfo, tokens} = structure;
+    const {editor, bufferPosition} = originalRequest;
 
     const shouldAddComma = (info: PositionInfo) => {
       if (!info || !info.nextToken || !tokens || tokens.length === 0) {
         return false;
       }
-      if (info.nextToken && _.includes([TokenType.END_ARRAY, TokenType.END_OBJECT], info.nextToken.type)) {
+      if (info.nextToken && includes([TokenType.END_ARRAY, TokenType.END_OBJECT], info.nextToken.type)) {
         return false;
       }
-      return !(info.nextToken && _.includes([TokenType.END_ARRAY, TokenType.END_OBJECT], info.nextToken.type)) && info.nextToken.type !== TokenType.COMMA;
+      return !(info.nextToken && includes([TokenType.END_ARRAY, TokenType.END_OBJECT], info.nextToken.type)) && info.nextToken.type !== TokenType.COMMA;
+    }
+
+    const prefix: (info: PositionInfo) => string = (info: PositionInfo) => {
+      if (!info || !info.editedToken) {
+        return '';
+      }
+      const length = bufferPosition.column - info.editedToken.col + 1;
+      return trimLeft(info.editedToken.src.substr(0, length), '"');
     }
 
     return {
       contents,
-      prefix: prefix,
+      prefix: prefix(positionInfo),
       segments: positionInfo ? positionInfo.segments : null,
       token: positionInfo ? (positionInfo.editedToken) ? positionInfo.editedToken.src : null : null,
       isKeyPosition: !!(positionInfo && positionInfo.keyPosition),
