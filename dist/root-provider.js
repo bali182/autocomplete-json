@@ -22,12 +22,12 @@ var RootProvider = (function () {
         return tokenizer_1.tokenize(editor.getText())
             .then(function (tokens) { return structure_provider_1.provideStructure(tokens, bufferPosition); })
             .then(function (structure) {
-            var request = _this.buildRequest(structure, prefix);
+            var request = _this.buildRequest(structure, prefix, editor);
             return Promise.all(providers.map(function (provider) { return provider.getProposals(request); }))
                 .then(function (proposals) { return Array.prototype.concat.apply([], proposals); });
         });
     };
-    RootProvider.prototype.buildRequest = function (structure, prefix) {
+    RootProvider.prototype.buildRequest = function (structure, prefix, editor) {
         var contents = structure.contents, positionInfo = structure.positionInfo, tokens = structure.tokens;
         var shouldAddComma = function (info) {
             if (!info || !info.nextToken || !tokens || tokens.length === 0) {
@@ -47,7 +47,8 @@ var RootProvider = (function () {
             isValuePosition: !!(positionInfo && positionInfo.valuePosition),
             isBetweenQuotes: !!(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === tokenizer_1.TokenType.STRING),
             shouldAddComma: !!shouldAddComma(positionInfo),
-            isFileEmpty: tokens.length === 0
+            isFileEmpty: tokens.length === 0,
+            editor: editor
         };
     };
     RootProvider.prototype.getMatchingProviders = function (file) {

@@ -23,13 +23,13 @@ export default class RootProvider {
     return tokenize(editor.getText())
       .then(tokens => provideStructure(tokens, bufferPosition))
       .then(structure => {
-        const request = this.buildRequest(structure, prefix);
+        const request = this.buildRequest(structure, prefix, editor);
         return Promise.all(providers.map(provider => provider.getProposals(request)))
           .then(proposals => Array.prototype.concat.apply([], proposals));
       });
   }
 
-  buildRequest(structure: IStructureInfo, prefix: string): IRequest {
+  buildRequest(structure: IStructureInfo, prefix: string, editor: AtomCore.IEditor): IRequest {
     const {contents, positionInfo, tokens} = structure;
 
     const shouldAddComma = (info: PositionInfo) => {
@@ -51,7 +51,8 @@ export default class RootProvider {
       isValuePosition: !!(positionInfo && positionInfo.valuePosition),
       isBetweenQuotes: !!(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === TokenType.STRING),
       shouldAddComma: !!shouldAddComma(positionInfo),
-      isFileEmpty: tokens.length === 0
+      isFileEmpty: tokens.length === 0,
+      editor: editor
     }
   }
 

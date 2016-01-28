@@ -44,17 +44,29 @@ var JsonPathMatcher = (function () {
     }
     JsonPathMatcher.prototype.index = function (value) {
         if (value === void 0) { value = undefined; }
-        var matcher = lodash_1.isArray(value)
-            ? new OrMatcher(value.map(function (v) { return new IndexMatcher(v); }))
-            : new IndexMatcher(value);
-        return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyIndexMatcher : matcher]));
+        var matcher;
+        if (value === undefined) {
+            matcher = AnyIndexMatcher;
+        }
+        else {
+            matcher = lodash_1.isArray(value)
+                ? new OrMatcher(value.map(function (v) { return new IndexMatcher(v); }))
+                : new IndexMatcher(value);
+        }
+        return new JsonPathMatcher(this.matchers.concat([matcher]));
     };
     JsonPathMatcher.prototype.key = function (value) {
         if (value === void 0) { value = undefined; }
-        var matcher = lodash_1.isArray(value)
-            ? new OrMatcher(value.map(function (v) { return new KeyMatcher(v); }))
-            : new KeyMatcher(value);
-        return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyKeyMatcher : matcher]));
+        var matcher;
+        if (value === undefined) {
+            matcher = AnyKeyMatcher;
+        }
+        else {
+            matcher = lodash_1.isArray(value)
+                ? new OrMatcher(value.map(function (v) { return new KeyMatcher(v); }))
+                : new KeyMatcher(value);
+        }
+        return new JsonPathMatcher(this.matchers.concat([matcher]));
     };
     JsonPathMatcher.prototype.any = function () {
         return new JsonPathMatcher(this.matchers.concat([AnyMatcher]));

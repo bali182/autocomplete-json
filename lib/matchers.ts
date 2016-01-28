@@ -59,17 +59,27 @@ class JsonPathMatcher implements IJsonPathMatcher {
   constructor(private matchers: Array<IMatcher<string | number>> = []) { }
 
   index(value: number | Array<number> = undefined): IJsonPathMatcher {
-    const matcher: IMatcher<string | number> = isArray(value)
-      ? new OrMatcher(value.map(v => new IndexMatcher(v)))
-      : new IndexMatcher(value);
-    return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyIndexMatcher : matcher]));
+    let matcher: IMatcher<string | number>;
+    if (value === undefined) {
+      matcher = AnyIndexMatcher;
+    } else {
+      matcher = isArray(value)
+        ? new OrMatcher(value.map(v => new IndexMatcher(v)))
+        : new IndexMatcher(value);
+    }
+    return new JsonPathMatcher(this.matchers.concat([matcher]));
   }
 
   key(value: string | Array<string> = undefined): IJsonPathMatcher {
-    const matcher: IMatcher<string | number> = isArray(value)
-      ? new OrMatcher(value.map(v => new KeyMatcher(v)))
-      : new KeyMatcher(value);
-    return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyKeyMatcher : matcher]));
+    let matcher: IMatcher<string | number>;
+    if (value === undefined) {
+      matcher = AnyKeyMatcher;
+    } else {
+      matcher = isArray(value)
+        ? new OrMatcher(value.map(v => new KeyMatcher(v)))
+        : new KeyMatcher(value);
+    }
+    return new JsonPathMatcher(this.matchers.concat([matcher]));
   }
 
   any(): IJsonPathMatcher {

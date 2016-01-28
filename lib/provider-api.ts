@@ -8,6 +8,7 @@ export interface IRequest {
   isBetweenQuotes: boolean,
   isFileEmpty: boolean,
   shouldAddComma: boolean
+  editor: AtomCore.IEditor,
 }
 
 export interface IProposal {
@@ -23,7 +24,6 @@ export interface IProposal {
   iconHTML?: string,
   description?: string,
   descriptionMoreURL?: string,
-  editor?: AtomCore.IEditor,
 }
 
 export interface IFilePatternProvider {

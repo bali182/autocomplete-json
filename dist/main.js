@@ -22,12 +22,14 @@ function provideJsonSchemaProviders() {
 exports.provideJsonSchemaProviders = provideJsonSchemaProviders;
 function provideProposalProviders() {
     var PackageJsonDependecyProposalProvider = require('./providers/package/package-json-dependency-proposal-provider').default;
+    var TsConfigFileProposalProvider = require('./providers/tsconfig/tsconfig-files-proposal-provider').default;
     var BabelRCPresetsProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
     var BabelRCPluginsProposalProvider = require('./providers/babelrc/babelrc-plugins-proposal-provider').default;
     return [
         new PackageJsonDependecyProposalProvider(),
         new BabelRCPresetsProposalProvider(),
-        new BabelRCPluginsProposalProvider()
+        new BabelRCPluginsProposalProvider(),
+        new TsConfigFileProposalProvider()
     ];
 }
 exports.provideProposalProviders = provideProposalProviders;
