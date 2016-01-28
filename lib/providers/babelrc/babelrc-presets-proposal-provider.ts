@@ -1,14 +1,17 @@
 import {IProposal, IProposalProvider, IRequest} from '../../provider-api';
+import {path, request} from '../../matchers';
 import {includes, isString, isNumber, trim, startsWith, flatten} from 'lodash';
 const {search} = require('npm-package-lookup');
 
 const PRESETS = 'presets';
 const BABEL_PRESET = 'babel-preset-';
 
+const PRESET_MATCHER = request().value().path(path().key(PRESETS).index());
+
 export default class BabelRCPresetsProposalProvider implements IProposalProvider {
   getProposals(request: IRequest): Promise<Array<IProposal>> {
-    const {segments, contents, prefix, isBetweenQuotes, shouldAddComma} = request;
-    if (segments && contents && segments.length === 2 && segments[0] === PRESETS && isNumber(segments[1])) {
+    const {contents, prefix, isBetweenQuotes, shouldAddComma} = request;
+    if (PRESET_MATCHER.matches(request)) {
       const presets: Array<string> = contents[PRESETS] || [];
       const results: Promise<Array<string>> = search(this.calculateSearchKeyword(prefix));
       return results.then(names => {
