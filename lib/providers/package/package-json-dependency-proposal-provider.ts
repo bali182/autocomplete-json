@@ -1,10 +1,13 @@
 import {IProposal, IProposalProvider, IRequest} from '../../provider-api';
+import {path, request} from '../../matchers';
 import {includes, isString, trim, startsWith, flatten} from 'lodash';
 const {search, versions} = require('npm-package-lookup');
 
 const DEPENDENCY_PROPERTIES = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 const STABLE_VERSION_REGEX = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/;
-const EMPTY_OBJECT = {};
+
+const KEY_MATCHER = request().key().path(path().key(DEPENDENCY_PROPERTIES))
+const VALUE_MATCHER = request().value().path(path().key(DEPENDENCY_PROPERTIES).key())
 
 function createPackageNameProposal(key: string, request: IRequest): IProposal {
   const {isBetweenQuotes, shouldAddComma} = request;
@@ -23,9 +26,9 @@ function createPackageNameProposal(key: string, request: IRequest): IProposal {
 
 function getUsedKeys(request: IRequest) {
   const {contents} = request;
-  const safeContents = contents || EMPTY_OBJECT;
+  const safeContents = contents || {};
   return flatten(DEPENDENCY_PROPERTIES
-    .map(property => safeContents[property] || EMPTY_OBJECT)
+    .map(property => safeContents[property] || {})
     .map(object => Object.keys(object)));
 }
 
@@ -53,18 +56,12 @@ export default class PackageJsonDependencyProposalProvider implements IProposalP
   getProposals(request: IRequest): Promise<Array<IProposal>> {
     const {segments, isKeyPosition, isValuePosition} = request;
 
-    if (segments && segments.length === 1 && isKeyPosition) {
-      const [key] = segments;
-      if (includes(DEPENDENCY_PROPERTIES, key)) {
-        return this.getDependencyKeysProposals(request);
-      }
+    if (KEY_MATCHER.matches(request)) {
+      return this.getDependencyKeysProposals(request);
     }
 
-    if (segments && segments.length === 2 && isValuePosition) {
-      const [firstKey, secondKey] = segments;
-      if (includes(DEPENDENCY_PROPERTIES, firstKey) && isString(secondKey)) {
-        return this.getDependencyVersionsProposals(request);
-      }
+    if (VALUE_MATCHER.matches(request)) {
+      return this.getDependencyVersionsProposals(request);
     }
 
     return Promise.resolve([]);

@@ -1,13 +1,15 @@
+var matchers_1 = require('../../matchers');
 var lodash_1 = require('lodash');
 var search = require('npm-package-lookup').search;
 var PRESETS = 'presets';
 var BABEL_PRESET = 'babel-preset-';
+var PRESET_MATCHER = matchers_1.request().value().path(matchers_1.path().key(PRESETS).index());
 var BabelRCPresetsProposalProvider = (function () {
     function BabelRCPresetsProposalProvider() {
     }
     BabelRCPresetsProposalProvider.prototype.getProposals = function (request) {
-        var segments = request.segments, contents = request.contents, prefix = request.prefix, isBetweenQuotes = request.isBetweenQuotes, shouldAddComma = request.shouldAddComma;
-        if (segments && contents && segments.length === 2 && segments[0] === PRESETS && lodash_1.isNumber(segments[1])) {
+        var contents = request.contents, prefix = request.prefix, isBetweenQuotes = request.isBetweenQuotes, shouldAddComma = request.shouldAddComma;
+        if (PRESET_MATCHER.matches(request)) {
             var presets = contents[PRESETS] || [];
             var results = search(this.calculateSearchKeyword(prefix));
             return results.then(function (names) {
