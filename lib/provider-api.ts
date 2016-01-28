@@ -22,7 +22,8 @@ export interface IProposal {
   className?: string,
   iconHTML?: string,
   description?: string,
-  descriptionMoreURL?: string
+  descriptionMoreURL?: string,
+  editor: AtomCore.IEditor,
 }
 
 export interface IFilePatternProvider {

@@ -11,7 +11,7 @@ export default class RootProvider {
 
   constructor(private providers: Array<IProposalProvider> = []) { }
 
-  getSuggestions({editor, bufferPosition, activatedManually, prefix}): Promise<IProposal> {
+  getSuggestions({editor, bufferPosition, activatedManually, prefix}): Promise<Array<IProposal>> {
     if (editor.lineTextForBufferRow(bufferPosition.row).charAt(bufferPosition.column - 1) === ',' && !activatedManually) {
       return Promise.resolve([]); // hack, to prevent activation right after inserting a comma
     }
