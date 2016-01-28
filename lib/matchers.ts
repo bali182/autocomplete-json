@@ -2,7 +2,7 @@ import {isNumber, isString, isArray} from 'lodash';
 import {IRequest} from './provider-api';
 
 export interface IMatcher<T> {
-  matches(segment: T): boolean;
+  matches(input: T): boolean;
 }
 
 export interface IJsonPathMatcher extends IMatcher<Array<string | number>> {
@@ -17,25 +17,24 @@ export interface IRequestMatcher extends IMatcher<IRequest> {
   key(): IRequestMatcher;
 }
 
+export interface ICompositeMatcher<T> extends IMatcher<T> {
+  append(matcher: IMatcher<T>): ICompositeMatcher<T>;
+  prepend(matcher: IMatcher<T>): ICompositeMatcher<T>;
+}
+
 class IndexMatcher implements IMatcher<string | number> {
-  constructor(private index: number | Array<number>) { }
+  constructor(private index: number) { }
 
   matches(segment: string | number): boolean {
-    if (!isNumber(segment)) {
-      return false;
-    }
-    return (isArray(this.index) ? <Array<number>>this.index : [<number>this.index]).some(key => key === segment);
+    return isNumber(segment) && this.index === segment;
   }
 }
 
 class KeyMatcher implements IMatcher<string | number> {
-  constructor(private key: string | Array<string>) { }
+  constructor(private key: string) { }
 
   matches(segment: string | number): boolean {
-    if (!isString(segment)) {
-      return false;
-    }
-    return (isArray(this.key) ? <Array<string>>this.key : [<string>this.key]).some(key => key === segment);
+    return isString(segment) && this.key === segment;
   }
 }
 
@@ -60,11 +59,17 @@ class JsonPathMatcher implements IJsonPathMatcher {
   constructor(private matchers: Array<IMatcher<string | number>> = []) { }
 
   index(value: number | Array<number> = undefined): IJsonPathMatcher {
-    return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyIndexMatcher : new IndexMatcher(value)]));
+    const matcher: IMatcher<string | number> = isArray(value)
+      ? new OrMatcher(value.map(v => new IndexMatcher(v)))
+      : new IndexMatcher(value);
+    return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyIndexMatcher : matcher]));
   }
 
   key(value: string | Array<string> = undefined): IJsonPathMatcher {
-    return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyKeyMatcher : new KeyMatcher(value)]));
+    const matcher: IMatcher<string | number> = isArray(value)
+      ? new OrMatcher(value.map(v => new KeyMatcher(v)))
+      : new KeyMatcher(value);
+    return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyKeyMatcher : matcher]));
   }
 
   any(): IJsonPathMatcher {
@@ -126,10 +131,62 @@ class RequestMatcher implements IRequestMatcher {
   }
 }
 
+abstract class CompositeMatcher<T> implements IMatcher<T> {
+  constructor(protected matchers: Array<IMatcher<T>> = []) { }
+
+  append(matcher: IMatcher<T>): ICompositeMatcher<T> {
+    return this.createCompositeMatcher(this.matchers.concat([matcher]));
+  }
+
+  prepend(matcher: IMatcher<T>): ICompositeMatcher<T> {
+    return this.createCompositeMatcher([matcher].concat(this.matchers));
+  }
+
+  abstract createCompositeMatcher(matchers: Array<IMatcher<T>>): ICompositeMatcher<T>;
+  abstract matches(input: T): boolean;
+}
+
+
+class AndMatcher<T> extends CompositeMatcher<T> {
+  constructor(matchers: Array<IMatcher<T>> = []) {
+    super(matchers);
+  }
+
+  createCompositeMatcher(matchers: Array<IMatcher<T>>): ICompositeMatcher<T> {
+    return new AndMatcher(matchers);
+  }
+
+  matches(input: T): boolean {
+    return this.matchers.every(matcher => matcher.matches(input));
+  }
+}
+
+class OrMatcher<T> extends CompositeMatcher<T> {
+  constructor(matchers: Array<IMatcher<T>> = []) {
+    super(matchers);
+  }
+
+  createCompositeMatcher(matchers: Array<IMatcher<T>>): ICompositeMatcher<T> {
+    return new OrMatcher(matchers);
+  }
+
+  matches(input: T): boolean {
+    return this.matchers.some(matcher => matcher.matches(input));
+  }
+}
+
 export function path() {
   return new JsonPathMatcher();
 }
 
 export function request() {
   return new RequestMatcher();
+}
+
+export function and<T>(...matchers: Array<IMatcher<T>>): ICompositeMatcher<T> {
+  return new AndMatcher(matchers);
+}
+
+export function or<T>(...matchers: Array<IMatcher<T>>): ICompositeMatcher<T> {
+  return new OrMatcher(matchers);
 }

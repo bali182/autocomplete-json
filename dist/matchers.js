@@ -1,13 +1,15 @@
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
 var lodash_1 = require('lodash');
 var IndexMatcher = (function () {
     function IndexMatcher(index) {
         this.index = index;
     }
     IndexMatcher.prototype.matches = function (segment) {
-        if (!lodash_1.isNumber(segment)) {
-            return false;
-        }
-        return (lodash_1.isArray(this.index) ? this.index : [this.index]).some(function (key) { return key === segment; });
+        return lodash_1.isNumber(segment) && this.index === segment;
     };
     return IndexMatcher;
 })();
@@ -16,10 +18,7 @@ var KeyMatcher = (function () {
         this.key = key;
     }
     KeyMatcher.prototype.matches = function (segment) {
-        if (!lodash_1.isString(segment)) {
-            return false;
-        }
-        return (lodash_1.isArray(this.key) ? this.key : [this.key]).some(function (key) { return key === segment; });
+        return lodash_1.isString(segment) && this.key === segment;
     };
     return KeyMatcher;
 })();
@@ -45,11 +44,17 @@ var JsonPathMatcher = (function () {
     }
     JsonPathMatcher.prototype.index = function (value) {
         if (value === void 0) { value = undefined; }
-        return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyIndexMatcher : new IndexMatcher(value)]));
+        var matcher = lodash_1.isArray(value)
+            ? new OrMatcher(value.map(function (v) { return new IndexMatcher(v); }))
+            : new IndexMatcher(value);
+        return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyIndexMatcher : matcher]));
     };
     JsonPathMatcher.prototype.key = function (value) {
         if (value === void 0) { value = undefined; }
-        return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyKeyMatcher : new KeyMatcher(value)]));
+        var matcher = lodash_1.isArray(value)
+            ? new OrMatcher(value.map(function (v) { return new KeyMatcher(v); }))
+            : new KeyMatcher(value);
+        return new JsonPathMatcher(this.matchers.concat([value === undefined ? AnyKeyMatcher : matcher]));
     };
     JsonPathMatcher.prototype.any = function () {
         return new JsonPathMatcher(this.matchers.concat([AnyMatcher]));
@@ -105,6 +110,47 @@ var RequestMatcher = (function () {
     };
     return RequestMatcher;
 })();
+var CompositeMatcher = (function () {
+    function CompositeMatcher(matchers) {
+        if (matchers === void 0) { matchers = []; }
+        this.matchers = matchers;
+    }
+    CompositeMatcher.prototype.append = function (matcher) {
+        return this.createCompositeMatcher(this.matchers.concat([matcher]));
+    };
+    CompositeMatcher.prototype.prepend = function (matcher) {
+        return this.createCompositeMatcher([matcher].concat(this.matchers));
+    };
+    return CompositeMatcher;
+})();
+var AndMatcher = (function (_super) {
+    __extends(AndMatcher, _super);
+    function AndMatcher(matchers) {
+        if (matchers === void 0) { matchers = []; }
+        _super.call(this, matchers);
+    }
+    AndMatcher.prototype.createCompositeMatcher = function (matchers) {
+        return new AndMatcher(matchers);
+    };
+    AndMatcher.prototype.matches = function (input) {
+        return this.matchers.every(function (matcher) { return matcher.matches(input); });
+    };
+    return AndMatcher;
+})(CompositeMatcher);
+var OrMatcher = (function (_super) {
+    __extends(OrMatcher, _super);
+    function OrMatcher(matchers) {
+        if (matchers === void 0) { matchers = []; }
+        _super.call(this, matchers);
+    }
+    OrMatcher.prototype.createCompositeMatcher = function (matchers) {
+        return new OrMatcher(matchers);
+    };
+    OrMatcher.prototype.matches = function (input) {
+        return this.matchers.some(function (matcher) { return matcher.matches(input); });
+    };
+    return OrMatcher;
+})(CompositeMatcher);
 function path() {
     return new JsonPathMatcher();
 }
@@ -113,3 +159,19 @@ function request() {
     return new RequestMatcher();
 }
 exports.request = request;
+function and() {
+    var matchers = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        matchers[_i - 0] = arguments[_i];
+    }
+    return new AndMatcher(matchers);
+}
+exports.and = and;
+function or() {
+    var matchers = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        matchers[_i - 0] = arguments[_i];
+    }
+    return new OrMatcher(matchers);
+}
+exports.or = or;
