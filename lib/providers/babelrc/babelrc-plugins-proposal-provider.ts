@@ -1,14 +1,17 @@
 import {IProposal, IProposalProvider, IRequest} from '../../provider-api';
+import {path, request} from '../../matchers';
 import {includes, isString, isNumber, trim, startsWith, flatten} from 'lodash';
 const {search} = require('npm-package-lookup');
 
 const PLUGINS = 'plugins';
 const BABEL_PLUGIN = 'babel-plugin-';
 
+const PRESET_MATCHER = request().value().path(path().key(PLUGINS).index());
+
 export default class BabelRCPluginsProposalProvider implements IProposalProvider {
   getProposals(request: IRequest): Promise<Array<IProposal>> {
     const {segments, contents, prefix, isBetweenQuotes, shouldAddComma} = request;
-    if (segments && contents && segments.length === 2 && segments[0] === PLUGINS && isNumber(segments[1])) {
+    if (PRESET_MATCHER.matches(request)) {
       const plugins: Array<string> = contents[PLUGINS] || [];
       const results: Promise<Array<string>> = search(this.calculateSearchKeyword(prefix));
       return results.then(names => {

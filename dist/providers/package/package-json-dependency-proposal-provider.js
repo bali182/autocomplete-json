@@ -1,8 +1,10 @@
+var matchers_1 = require('../../matchers');
 var lodash_1 = require('lodash');
 var _a = require('npm-package-lookup'), search = _a.search, versions = _a.versions;
 var DEPENDENCY_PROPERTIES = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 var STABLE_VERSION_REGEX = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/;
-var EMPTY_OBJECT = {};
+var KEY_MATCHER = matchers_1.request().key().path(matchers_1.path().key(DEPENDENCY_PROPERTIES));
+var VALUE_MATCHER = matchers_1.request().value().path(matchers_1.path().key(DEPENDENCY_PROPERTIES).key());
 function createPackageNameProposal(key, request) {
     var isBetweenQuotes = request.isBetweenQuotes, shouldAddComma = request.shouldAddComma;
     var proposal = {};
@@ -20,9 +22,9 @@ function createPackageNameProposal(key, request) {
 }
 function getUsedKeys(request) {
     var contents = request.contents;
-    var safeContents = contents || EMPTY_OBJECT;
+    var safeContents = contents || {};
     return lodash_1.flatten(DEPENDENCY_PROPERTIES
-        .map(function (property) { return safeContents[property] || EMPTY_OBJECT; })
+        .map(function (property) { return safeContents[property] || {}; })
         .map(function (object) { return Object.keys(object); }));
 }
 function createVersionProposal(version, request) {
@@ -49,17 +51,11 @@ var PackageJsonDependencyProposalProvider = (function () {
     }
     PackageJsonDependencyProposalProvider.prototype.getProposals = function (request) {
         var segments = request.segments, isKeyPosition = request.isKeyPosition, isValuePosition = request.isValuePosition;
-        if (segments && segments.length === 1 && isKeyPosition) {
-            var key = segments[0];
-            if (lodash_1.includes(DEPENDENCY_PROPERTIES, key)) {
-                return this.getDependencyKeysProposals(request);
-            }
+        if (KEY_MATCHER.matches(request)) {
+            return this.getDependencyKeysProposals(request);
         }
-        if (segments && segments.length === 2 && isValuePosition) {
-            var firstKey = segments[0], secondKey = segments[1];
-            if (lodash_1.includes(DEPENDENCY_PROPERTIES, firstKey) && lodash_1.isString(secondKey)) {
-                return this.getDependencyVersionsProposals(request);
-            }
+        if (VALUE_MATCHER.matches(request)) {
+            return this.getDependencyVersionsProposals(request);
         }
         return Promise.resolve([]);
     };
