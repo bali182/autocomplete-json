@@ -4,6 +4,7 @@ import RootProvider from './root-provider';
 import {IJsonSchemaProvider, IProposalProvider} from './provider-api';
 import {JsonSchemaProposalProvider} from './json-schema-proposal-provider';
 import {isArray, remove} from 'lodash';
+import {defaultProviders, defaultSchemaProviders} from './providers';
 
 const {CompositeDisposable, Disposable} = require('atom');
 
@@ -18,23 +19,11 @@ export function provideAutocomplete() {
 }
 
 export function provideJsonSchemaProviders(): IJsonSchemaProvider | Array<IJsonSchemaProvider> {
-  return [
-    require('./providers/tsconfig/tsconfig-json-schema-proposal-provider').default,
-    require('./providers/package/package-json-schema-proposal-provider').default,
-    require('./providers/bower/bower-json-schema-proposal-provider').default,
-    require('./providers/babelrc/babelrc-json-schema-proposal-provider').default
-  ];
+  return defaultSchemaProviders;
 }
 
-export function provideProposalProviders(): IJsonSchemaProvider | Array<IJsonSchemaProvider> {
-  const PackageJsonDependecyProposalProvider = require('./providers/package/package-json-dependency-proposal-provider').default;
-  const BabelRCPresetsProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
-  const BabelRCPluginsProposalProvider = require('./providers/babelrc/babelrc-plugins-proposal-provider').default;
-  return [
-    new PackageJsonDependecyProposalProvider(),
-    new BabelRCPresetsProposalProvider(),
-    new BabelRCPluginsProposalProvider()
-  ];
+export function provideProposalProviders(): IProposalProvider | Array<IProposalProvider> {
+  return defaultProviders;
 }
 
 function createDisposable(providers: Array<IProposalProvider>): any {
