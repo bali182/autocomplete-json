@@ -1,6 +1,6 @@
 import {IMatcher} from './matchers';
 import {IProposalProvider, IRequest, IProposal} from './provider-api';
-import {isEmpty, trimLeft, endsWith, last} from 'lodash';
+import {isEmpty, trimLeft, endsWith, startsWith, last, sortBy} from 'lodash';
 import {sep} from 'path';
 import * as fs from 'fs';
 
@@ -20,7 +20,7 @@ function directoryExists(path: string): boolean {
   }
 }
 
-function filesInDir(dir: string): Promise<Array<IFileInfo>> {
+function listPaths(dir: string): Promise<Array<IFileInfo>> {
   return new Promise<Array<IFileInfo>>((resolve, reject) => {
     fs.readdir(dir, (error: any, paths: Array<string>) => {
       if (error) {
@@ -40,12 +40,11 @@ function filesInDir(dir: string): Promise<Array<IFileInfo>> {
   });
 }
 
-function getDirectoryName(root: string, prefix: string): string {
-  // Empty prefix, search in the root folder.
-  if (isEmpty(prefix)) {
+function containerName(root: string, segments: Array<string>): string {
+  // Empty prefix or segments, search in the root folder.
+  if (isEmpty(segments)) {
     return root;
   }
-  const segments = prefix.split(SLASHES);
   // Last character is some kind of slash.
   if (isEmpty(last(segments))) {
     // this means, the last segment was (or should be) a directory.
@@ -64,21 +63,63 @@ function getDirectoryName(root: string, prefix: string): string {
   return null;
 }
 
+function prepareFiles(files: Array<IFileInfo>, request: IRequest, basePath: string, segments: Array<string>): Array<IFileInfo> {
+  let filteredFiles = isEmpty(last(segments))
+    ? files
+    : files.filter(file => startsWith(file.name, last(segments)));
+  return sortBy(filteredFiles, f => f.isDirectory ? 0 : 1);
+}
+
+function createProposal(file: IFileInfo, request: IRequest, basePath: string, segments: Array<string>): IProposal {
+  const proposal: IProposal = {};
+  const text = (() => {
+    let proposalText = file.name;
+    if (segments.length === 0) {
+      proposalText = file.name;
+    } else if (last(segments).length === 0) {
+      proposalText = segments.join('/') + file.name;
+    } else {
+      const withoutPartial = segments.slice(0, segments.length - 1);
+      if (withoutPartial.length === 0) {
+        proposalText = file.name
+      } else {
+        proposalText = segments.slice(0, segments.length - 1).join('/') + '/' + file.name;
+      }
+    }
+    return proposalText + (file.isDirectory ? '/' : '');
+  })();
+
+  proposal.replacementPrefix = request.prefix;
+  proposal.displayText = file.name;
+  proposal.rightLabel = file.isDirectory ? 'folder' : 'file';
+  if (request.isBetweenQuotes) {
+    proposal.text = text;
+  } else {
+    proposal.snippet = '"' + text + '$1"';
+  }
+
+  return proposal;
+}
+
 export abstract class FileProposalProvider implements IProposalProvider {
   getProposals(request: IRequest): Promise<Array<IProposal>> {
     if (!this.getMatcher().matches(request)) {
       return Promise.resolve([]);
     }
     const dir = request.editor.getBuffer().file.getParent().path;
-    const {prefix} = request; // TODO find a better way to get the prefix!!!
-    const searchDir = getDirectoryName(dir, prefix);
+    const {prefix} = request;
+    const segments = prefix.split(SLASHES);
+    const searchDir = containerName(dir, segments);
+
     if (searchDir === null) {
       return Promise.resolve([]);
     }
-    filesInDir(searchDir).then(results => {
-      console.log(results);
+
+    return listPaths(searchDir).then(results => {
+      return prepareFiles(results, request, dir, segments)
+        .map(file => createProposal(file, request, dir, segments));
     });
-    return Promise.resolve([]);
+
   }
   abstract getFilePattern(): string;
   abstract getMatcher(): IMatcher<IRequest>

@@ -10,7 +10,7 @@ function directoryExists(path) {
         return false;
     }
 }
-function filesInDir(dir) {
+function listPaths(dir) {
     return new Promise(function (resolve, reject) {
         fs.readdir(dir, function (error, paths) {
             if (error) {
@@ -30,11 +30,10 @@ function filesInDir(dir) {
         });
     });
 }
-function getDirectoryName(root, prefix) {
-    if (lodash_1.isEmpty(prefix)) {
+function containerName(root, segments) {
+    if (lodash_1.isEmpty(segments)) {
         return root;
     }
-    var segments = prefix.split(SLASHES);
     if (lodash_1.isEmpty(lodash_1.last(segments))) {
         var path = root + path_1.sep + lodash_1.trimLeft(segments.join(path_1.sep), '/\\');
         if (directoryExists(path)) {
@@ -49,6 +48,44 @@ function getDirectoryName(root, prefix) {
     }
     return null;
 }
+function prepareFiles(files, request, basePath, segments) {
+    var filteredFiles = lodash_1.isEmpty(lodash_1.last(segments))
+        ? files
+        : files.filter(function (file) { return lodash_1.startsWith(file.name, lodash_1.last(segments)); });
+    return lodash_1.sortBy(filteredFiles, function (f) { return f.isDirectory ? 0 : 1; });
+}
+function createProposal(file, request, basePath, segments) {
+    var proposal = {};
+    var text = (function () {
+        var proposalText = file.name;
+        if (segments.length === 0) {
+            proposalText = file.name;
+        }
+        else if (lodash_1.last(segments).length === 0) {
+            proposalText = segments.join('/') + file.name;
+        }
+        else {
+            var withoutPartial = segments.slice(0, segments.length - 1);
+            if (withoutPartial.length === 0) {
+                proposalText = file.name;
+            }
+            else {
+                proposalText = segments.slice(0, segments.length - 1).join('/') + '/' + file.name;
+            }
+        }
+        return proposalText + (file.isDirectory ? '/' : '');
+    })();
+    proposal.replacementPrefix = request.prefix;
+    proposal.displayText = file.name;
+    proposal.rightLabel = file.isDirectory ? 'folder' : 'file';
+    if (request.isBetweenQuotes) {
+        proposal.text = text;
+    }
+    else {
+        proposal.snippet = '"' + text + '$1"';
+    }
+    return proposal;
+}
 var FileProposalProvider = (function () {
     function FileProposalProvider() {
     }
@@ -58,14 +95,15 @@ var FileProposalProvider = (function () {
         }
         var dir = request.editor.getBuffer().file.getParent().path;
         var prefix = request.prefix;
-        var searchDir = getDirectoryName(dir, prefix);
+        var segments = prefix.split(SLASHES);
+        var searchDir = containerName(dir, segments);
         if (searchDir === null) {
             return Promise.resolve([]);
         }
-        filesInDir(searchDir).then(function (results) {
-            console.log(results);
+        return listPaths(searchDir).then(function (results) {
+            return prepareFiles(results, request, dir, segments)
+                .map(function (file) { return createProposal(file, request, dir, segments); });
         });
-        return Promise.resolve([]);
     };
     return FileProposalProvider;
 })();
