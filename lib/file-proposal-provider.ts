@@ -97,13 +97,13 @@ function createProposal(file: IFileInfo, request: IRequest, basePath: string, se
   } else {
     proposal.snippet = '"' + text + '$1"';
   }
-
+  proposal.type = proposal.rightLabel;
   return proposal;
 }
 
 export abstract class FileProposalProvider implements IProposalProvider {
   getProposals(request: IRequest): Promise<Array<IProposal>> {
-    if (!this.getMatcher().matches(request)) {
+    if (!request.isBetweenQuotes || !this.getMatcher().matches(request)) {
       return Promise.resolve([]);
     }
     const dir = request.editor.getBuffer().file.getParent().path;

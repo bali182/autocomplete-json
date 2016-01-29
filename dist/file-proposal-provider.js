@@ -84,13 +84,14 @@ function createProposal(file, request, basePath, segments) {
     else {
         proposal.snippet = '"' + text + '$1"';
     }
+    proposal.type = proposal.rightLabel;
     return proposal;
 }
 var FileProposalProvider = (function () {
     function FileProposalProvider() {
     }
     FileProposalProvider.prototype.getProposals = function (request) {
-        if (!this.getMatcher().matches(request)) {
+        if (!request.isBetweenQuotes || !this.getMatcher().matches(request)) {
             return Promise.resolve([]);
         }
         var dir = request.editor.getBuffer().file.getParent().path;

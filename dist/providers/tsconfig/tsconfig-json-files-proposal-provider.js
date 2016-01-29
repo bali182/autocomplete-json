@@ -5,19 +5,19 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var file_proposal_provider_1 = require('../../file-proposal-provider');
 var matchers_1 = require('../../matchers');
-var MATCHER = matchers_1.request().value().path(matchers_1.path().key('files').index());
-var TsConfigFileProposalProvider = (function (_super) {
-    __extends(TsConfigFileProposalProvider, _super);
-    function TsConfigFileProposalProvider() {
+var MATCHER = matchers_1.or(matchers_1.request().value().path(matchers_1.path().key('files').index()), matchers_1.request().value().path(matchers_1.path().key('exclude').index()));
+var TsConfigJsonFileProposalProvider = (function (_super) {
+    __extends(TsConfigJsonFileProposalProvider, _super);
+    function TsConfigJsonFileProposalProvider() {
         _super.apply(this, arguments);
     }
-    TsConfigFileProposalProvider.prototype.getFilePattern = function () {
+    TsConfigJsonFileProposalProvider.prototype.getFilePattern = function () {
         return 'tsconfig.json';
     };
-    TsConfigFileProposalProvider.prototype.getMatcher = function () {
+    TsConfigJsonFileProposalProvider.prototype.getMatcher = function () {
         return MATCHER;
     };
-    return TsConfigFileProposalProvider;
+    return TsConfigJsonFileProposalProvider;
 })(file_proposal_provider_1.FileProposalProvider);
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = TsConfigFileProposalProvider;
+exports.default = TsConfigJsonFileProposalProvider;

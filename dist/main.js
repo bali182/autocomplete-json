@@ -1,6 +1,7 @@
 var root_provider_1 = require('./root-provider');
 var json_schema_proposal_provider_1 = require('./json-schema-proposal-provider');
 var lodash_1 = require('lodash');
+var providers_1 = require('./providers');
 var _a = require('atom'), CompositeDisposable = _a.CompositeDisposable, Disposable = _a.Disposable;
 var PROVIDERS;
 function activate() {
@@ -12,25 +13,11 @@ function provideAutocomplete() {
 }
 exports.provideAutocomplete = provideAutocomplete;
 function provideJsonSchemaProviders() {
-    return [
-        require('./providers/tsconfig/tsconfig-json-schema-proposal-provider').default,
-        require('./providers/package/package-json-schema-proposal-provider').default,
-        require('./providers/bower/bower-json-schema-proposal-provider').default,
-        require('./providers/babelrc/babelrc-json-schema-proposal-provider').default
-    ];
+    return providers_1.defaultSchemaProviders;
 }
 exports.provideJsonSchemaProviders = provideJsonSchemaProviders;
 function provideProposalProviders() {
-    var PackageJsonDependecyProposalProvider = require('./providers/package/package-json-dependency-proposal-provider').default;
-    var TsConfigFileProposalProvider = require('./providers/tsconfig/tsconfig-files-proposal-provider').default;
-    var BabelRCPresetsProposalProvider = require('./providers/babelrc/babelrc-presets-proposal-provider').default;
-    var BabelRCPluginsProposalProvider = require('./providers/babelrc/babelrc-plugins-proposal-provider').default;
-    return [
-        new PackageJsonDependecyProposalProvider(),
-        new BabelRCPresetsProposalProvider(),
-        new BabelRCPluginsProposalProvider(),
-        new TsConfigFileProposalProvider()
-    ];
+    return providers_1.defaultProviders;
 }
 exports.provideProposalProviders = provideProposalProviders;
 function createDisposable(providers) {
