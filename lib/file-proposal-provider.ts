@@ -1,7 +1,6 @@
-import {IMatcher} from './matchers';
-import {IProposalProvider, IRequest, IProposal} from './provider-api';
-import {isEmpty, trimLeft, endsWith, startsWith, last, sortBy} from 'lodash';
-import {sep} from 'path';
+import {IProposalProvider, IRequest, IProposal, IFileProposalConfiguration, IMatcher, StorageType} from './provider-api';
+import {isEmpty, trimLeft, endsWith, startsWith, last, sortBy, includes} from 'lodash';
+import {sep, extname} from 'path';
 import * as fs from 'fs';
 
 const SLASHES = /\\|\//; // slash (/) or backslash (\)
@@ -20,7 +19,7 @@ function directoryExists(path: string): boolean {
   }
 }
 
-function listPaths(dir: string): Promise<Array<IFileInfo>> {
+function listPaths(dir: string, storageType: StorageType, fileExtensions: Array<string>): Promise<Array<IFileInfo>> {
   return new Promise<Array<IFileInfo>>((resolve, reject) => {
     fs.readdir(dir, (error: any, paths: Array<string>) => {
       if (error) {
@@ -32,6 +31,16 @@ function listPaths(dir: string): Promise<Array<IFileInfo>> {
             name: path,
             isFile: stats.isFile(),
             isDirectory: stats.isDirectory()
+          }
+        }).filter(file => {
+          switch (storageType) {
+            case StorageType.FILE:
+              return file.isFile && (!fileExtensions || includes(fileExtensions, extname(file.name)));
+            case StorageType.FOLDER:
+              return file.isDirectory;
+            default: {
+              return file.isDirectory || !fileExtensions || includes(fileExtensions, extname(file.name));
+            }
           }
         });
         resolve(fileInfos);
@@ -101,9 +110,12 @@ function createProposal(file: IFileInfo, request: IRequest, basePath: string, se
   return proposal;
 }
 
-export abstract class FileProposalProvider implements IProposalProvider {
+export class FileProposalProvider implements IProposalProvider {
+
+  constructor(private configuration: IFileProposalConfiguration) { }
+
   getProposals(request: IRequest): Promise<Array<IProposal>> {
-    if (!request.isBetweenQuotes || !this.getMatcher().matches(request)) {
+    if (!request.isBetweenQuotes || !this.configuration.getMatcher().matches(request)) {
       return Promise.resolve([]);
     }
     const dir = request.editor.getBuffer().file.getParent().path;
@@ -115,12 +127,17 @@ export abstract class FileProposalProvider implements IProposalProvider {
       return Promise.resolve([]);
     }
 
-    return listPaths(searchDir).then(results => {
+    return listPaths(
+      searchDir,
+      this.configuration.getStorageType(),
+      this.configuration.getFileExtensions()
+    ).then(results => {
       return prepareFiles(results, request, dir, segments)
         .map(file => createProposal(file, request, dir, segments));
     });
-
   }
-  abstract getFilePattern(): string;
-  abstract getMatcher(): IMatcher<IRequest>
+
+  getFilePattern(): string {
+    return this.configuration.getFilePattern();
+  }
 }

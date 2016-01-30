@@ -1,3 +1,4 @@
+var provider_api_1 = require('./provider-api');
 var lodash_1 = require('lodash');
 var path_1 = require('path');
 var fs = require('fs');
@@ -10,7 +11,7 @@ function directoryExists(path) {
         return false;
     }
 }
-function listPaths(dir) {
+function listPaths(dir, storageType, fileExtensions) {
     return new Promise(function (resolve, reject) {
         fs.readdir(dir, function (error, paths) {
             if (error) {
@@ -24,6 +25,16 @@ function listPaths(dir) {
                         isFile: stats.isFile(),
                         isDirectory: stats.isDirectory()
                     };
+                }).filter(function (file) {
+                    switch (storageType) {
+                        case provider_api_1.StorageType.FILE:
+                            return file.isFile && (!fileExtensions || lodash_1.includes(fileExtensions, path_1.extname(file.name)));
+                        case provider_api_1.StorageType.FOLDER:
+                            return file.isDirectory;
+                        default: {
+                            return file.isDirectory || !fileExtensions || lodash_1.includes(fileExtensions, path_1.extname(file.name));
+                        }
+                    }
                 });
                 resolve(fileInfos);
             }
@@ -88,10 +99,11 @@ function createProposal(file, request, basePath, segments) {
     return proposal;
 }
 var FileProposalProvider = (function () {
-    function FileProposalProvider() {
+    function FileProposalProvider(configuration) {
+        this.configuration = configuration;
     }
     FileProposalProvider.prototype.getProposals = function (request) {
-        if (!request.isBetweenQuotes || !this.getMatcher().matches(request)) {
+        if (!request.isBetweenQuotes || !this.configuration.getMatcher().matches(request)) {
             return Promise.resolve([]);
         }
         var dir = request.editor.getBuffer().file.getParent().path;
@@ -101,10 +113,13 @@ var FileProposalProvider = (function () {
         if (searchDir === null) {
             return Promise.resolve([]);
         }
-        return listPaths(searchDir).then(function (results) {
+        return listPaths(searchDir, this.configuration.getStorageType(), this.configuration.getFileExtensions()).then(function (results) {
             return prepareFiles(results, request, dir, segments)
                 .map(function (file) { return createProposal(file, request, dir, segments); });
         });
+    };
+    FileProposalProvider.prototype.getFilePattern = function () {
+        return this.configuration.getFilePattern();
     };
     return FileProposalProvider;
 })();
