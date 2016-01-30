@@ -1,26 +1,5 @@
 import {isNumber, isString, isArray} from 'lodash';
-import {IRequest} from './provider-api';
-
-export interface IMatcher<T> {
-  matches(input: T): boolean;
-}
-
-export interface IJsonPathMatcher extends IMatcher<Array<string | number>> {
-  any(): IJsonPathMatcher;
-  index(value?: number | Array<number>): IJsonPathMatcher;
-  key(value?: string | Array<string>): IJsonPathMatcher;
-}
-
-export interface IRequestMatcher extends IMatcher<IRequest> {
-  path(matcher: IMatcher<Array<string | number>>): IRequestMatcher;
-  value(): IRequestMatcher;
-  key(): IRequestMatcher;
-}
-
-export interface ICompositeMatcher<T> extends IMatcher<T> {
-  append(matcher: IMatcher<T>): ICompositeMatcher<T>;
-  prepend(matcher: IMatcher<T>): ICompositeMatcher<T>;
-}
+import {IRequest, IMatcher, IRequestMatcher, ICompositeMatcher, IJsonPathMatcher} from './provider-api';
 
 class IndexMatcher implements IMatcher<string | number> {
   constructor(private index: number) { }

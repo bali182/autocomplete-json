@@ -9,7 +9,7 @@ interface ISchemaVisitee {
 
 export class SchemaRoot {
   private schemaRoot: Object;
-  private resolveRef: Function;
+  private resolveRef: (path: string) => Object;
   private schema: BaseSchema;
 
   getSchema(): BaseSchema {
@@ -18,7 +18,7 @@ export class SchemaRoot {
 
   constructor(schemaRoot: Object) {
     this.schemaRoot = schemaRoot;
-    this.resolveRef = memoize((path: string) => {
+    this.resolveRef = <any>memoize((path: string) => {
       const segments = path.split('/');
       function resolveInternal(partialSchema: Object, refSegments: Array<string>): Object {
         if (isEmpty(refSegments)) {

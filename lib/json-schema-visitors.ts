@@ -85,9 +85,10 @@ export class SchemaFlattenerVisitor extends DefaultSchemaVisitor<Array<BaseSchem
 
 /** Visitor for providing value snippets for the given schema. */
 export class SnippetProposalVisitor extends DefaultSchemaVisitor<IRequest, string> {
+  static DEFAULT = '$1';
 
   constructor() {
-    super((schema: BaseSchema, request: IRequest) => '$1');
+    super((schema: BaseSchema, request: IRequest) => SnippetProposalVisitor.DEFAULT);
   }
 
   comma(request: IRequest) {
@@ -214,28 +215,29 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
     const {segments, contents} = request;
     const parent = schema.getParent();
     let possibleValues = schema.getValues();
-    
+
     if ((parent instanceof ArraySchema) && (<ArraySchema>parent).hasUniqueItems()) {
       const alreadyPresentValues: Array<string> = resolveObject(segments.slice(0, segments.length - 1), contents) || [];
       possibleValues = possibleValues.filter(value => alreadyPresentValues.indexOf(value) < 0);
     }
-    
+
     return possibleValues.map(enumValue => {
-        const proposal = this.createBaseProposalFor(schema);
-        proposal.displayText = enumValue;
-        if (request.isBetweenQuotes) {
-          proposal.text = enumValue;
-        } else {
-          proposal.snippet = '"' + enumValue + '${1}"' + this.snippetVisitor.comma(request);
-        }
-        return proposal;
-      });
+      const proposal = this.createBaseProposalFor(schema);
+      proposal.displayText = enumValue;
+      if (request.isBetweenQuotes) {
+        proposal.text = enumValue;
+      } else {
+        proposal.snippet = '"' + enumValue + '${1}"' + this.snippetVisitor.comma(request);
+      }
+      return proposal;
+    });
   }
 
   visitCompositeSchema(schema: CompositeSchema, request: IRequest) {
     return flatten(schema.getSchemas()
       .filter(s => !(s instanceof AnyOfSchema))
-      .map(s => s.accept(this, request)));
+      .map(s => s.accept(this, request).filter(r => r.snippet !== SnippetProposalVisitor.DEFAULT))
+    );
   }
 
   visitAllOfSchema(schema: AllOfSchema, request: IRequest): Array<IProposal> {
