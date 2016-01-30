@@ -20,7 +20,6 @@ function createPackageNameProposal(key: string, request: IRequest): IProposal {
   } else {
     proposal.snippet = '"' + key + '": "$1"' + (shouldAddComma ? ',' : '');
   }
-  proposal.iconHTML = '<i class="icon-package"></i>';
   return proposal;
 }
 
@@ -44,7 +43,6 @@ function createVersionProposal(version: string, request: IRequest): IProposal {
   } else {
     proposal.snippet = '"' + version + '"' + (shouldAddComma ? ',' : '');
   }
-  proposal.iconHTML = '<i class="icon-versions"></i>';
   return proposal;
 }
 
