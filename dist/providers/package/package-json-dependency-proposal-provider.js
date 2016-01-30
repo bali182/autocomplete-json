@@ -17,7 +17,6 @@ function createPackageNameProposal(key, request) {
     else {
         proposal.snippet = '"' + key + '": "$1"' + (shouldAddComma ? ',' : '');
     }
-    proposal.iconHTML = '<i class="icon-package"></i>';
     return proposal;
 }
 function getUsedKeys(request) {
@@ -40,7 +39,6 @@ function createVersionProposal(version, request) {
     else {
         proposal.snippet = '"' + version + '"' + (shouldAddComma ? ',' : '');
     }
-    proposal.iconHTML = '<i class="icon-versions"></i>';
     return proposal;
 }
 function isStableVersion(version) {

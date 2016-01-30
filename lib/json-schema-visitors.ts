@@ -268,7 +268,6 @@ export class KeyProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<IPr
         const valueSchema = schema.getProperty(key);
         const proposal: IProposal = {};
 
-        proposal.iconHTML = '<i class="icon-tag"></i>';
         proposal.description = valueSchema.getDescription()
         proposal.type = 'property';
         proposal.displayText = key;
