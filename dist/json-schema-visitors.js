@@ -74,7 +74,7 @@ exports.SchemaFlattenerVisitor = SchemaFlattenerVisitor;
 var SnippetProposalVisitor = (function (_super) {
     __extends(SnippetProposalVisitor, _super);
     function SnippetProposalVisitor() {
-        _super.call(this, function (schema, request) { return '$1'; });
+        _super.call(this, function (schema, request) { return SnippetProposalVisitor.DEFAULT; });
     }
     SnippetProposalVisitor.prototype.comma = function (request) {
         return request.shouldAddComma ? ',' : '';
@@ -115,6 +115,7 @@ var SnippetProposalVisitor = (function (_super) {
             ? this.defaultVisit(schema, request)
             : '{$1}' + this.comma(request);
     };
+    SnippetProposalVisitor.DEFAULT = '$1';
     return SnippetProposalVisitor;
 })(DefaultSchemaVisitor);
 exports.SnippetProposalVisitor = SnippetProposalVisitor;
@@ -207,7 +208,7 @@ var ValueProposalVisitor = (function (_super) {
         var _this = this;
         return lodash_1.flatten(schema.getSchemas()
             .filter(function (s) { return !(s instanceof json_schema_1.AnyOfSchema); })
-            .map(function (s) { return s.accept(_this, request); }));
+            .map(function (s) { return s.accept(_this, request).filter(function (r) { return r.snippet !== SnippetProposalVisitor.DEFAULT; }); }));
     };
     ValueProposalVisitor.prototype.visitAllOfSchema = function (schema, request) {
         return this.visitCompositeSchema(schema, request);
