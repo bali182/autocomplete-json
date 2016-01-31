@@ -16,6 +16,7 @@ import babelrcJsonSchemaProposalProvider from './providers/babelrc/babelrc-json-
 import tsConfigFiles from './providers/tsconfig/tsconfig-json-files-proposal-provider';
 import packageFiles from './providers/package/package-json-files-proposal-provider';
 import packageDirectories from './providers/package/package-json-directories-proposal-provider';
+import bowerFiles from './providers/bower/bower-json-files-proposal-provider';
 
 export const defaultProviders: Array<IProposalProvider> = [
   new PackageJsonDependecyProposalProvider(),
@@ -23,7 +24,8 @@ export const defaultProviders: Array<IProposalProvider> = [
   new BabelRCPluginsProposalProvider(),
   new FileProposalProvider(tsConfigFiles),
   new FileProposalProvider(packageFiles),
-  new FileProposalProvider(packageDirectories)
+  new FileProposalProvider(packageDirectories),
+  new FileProposalProvider(bowerFiles)
 ];
 
 export const defaultSchemaProviders: Array<IJsonSchemaProvider> = [

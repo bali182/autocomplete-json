@@ -14,7 +14,9 @@
     "tsconfig",
     "tsconfig.json",
     "autocomplete",
-    "autocomplete+"
+    "autocomplete plus",
+    "bower.json",
+    "babelrc"
   ],
   "author": "Balazs Edes",
   "license": "MIT",
