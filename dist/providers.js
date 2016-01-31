@@ -9,13 +9,15 @@ var babelrc_json_schema_proposal_provider_1 = require('./providers/babelrc/babel
 var tsconfig_json_files_proposal_provider_1 = require('./providers/tsconfig/tsconfig-json-files-proposal-provider');
 var package_json_files_proposal_provider_1 = require('./providers/package/package-json-files-proposal-provider');
 var package_json_directories_proposal_provider_1 = require('./providers/package/package-json-directories-proposal-provider');
+var bower_json_files_proposal_provider_1 = require('./providers/bower/bower-json-files-proposal-provider');
 exports.defaultProviders = [
     new package_json_dependency_proposal_provider_1.default(),
     new babelrc_presets_proposal_provider_1.default(),
     new babelrc_plugins_proposal_provider_1.default(),
     new file_proposal_provider_1.FileProposalProvider(tsconfig_json_files_proposal_provider_1.default),
     new file_proposal_provider_1.FileProposalProvider(package_json_files_proposal_provider_1.default),
-    new file_proposal_provider_1.FileProposalProvider(package_json_directories_proposal_provider_1.default)
+    new file_proposal_provider_1.FileProposalProvider(package_json_directories_proposal_provider_1.default),
+    new file_proposal_provider_1.FileProposalProvider(bower_json_files_proposal_provider_1.default)
 ];
 exports.defaultSchemaProviders = [
     tsconfig_json_schema_proposal_provider_1.default,
