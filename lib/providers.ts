@@ -11,6 +11,7 @@ import tsconfigJsonSchemaProposalProvider from './providers/tsconfig/tsconfig-js
 import packageJsonSchemaProposalProvider from './providers/package/package-json-schema-proposal-provider';
 import bowerJsonSchemaProposalProvider from './providers/bower/bower-json-schema-proposal-provider';
 import babelrcJsonSchemaProposalProvider from './providers/babelrc/babelrc-json-schema-proposal-provider';
+import composerJsonSchemaProposalProvider from './providers/composer/composer-json-schema-proposal-provider';
 
 // File config instances
 import tsConfigFiles from './providers/tsconfig/tsconfig-json-files-proposal-provider';
@@ -32,5 +33,6 @@ export const defaultSchemaProviders: Array<IJsonSchemaProvider> = [
   tsconfigJsonSchemaProposalProvider,
   packageJsonSchemaProposalProvider,
   bowerJsonSchemaProposalProvider,
-  babelrcJsonSchemaProposalProvider
+  babelrcJsonSchemaProposalProvider,
+  composerJsonSchemaProposalProvider
 ];
