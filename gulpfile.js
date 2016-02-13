@@ -19,13 +19,13 @@ gulp.task('build-ts', ['clean'], () => {
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('copy-json', ['clean'], () => {
-  return gulp.src('lib/**/*.json')
-    .pipe(gulp.dest('dist'));
-});
+gulp.task('copy-json', ['clean'], () => 
+  gulp.src('lib/**/*.json')
+    .pipe(gulp.dest('dist'))
+);
 
 gulp.task('build', ['build-ts', 'copy-json']);
 
-gulp.task('watch', [], () => {
-  return gulp.watch(['lib/**/*.json', 'lib/**/*.ts'], ['build']);
-});
+gulp.task('watch', [], () => 
+  gulp.watch(['lib/**/*.json', 'lib/**/*.ts'], ['build'])
+);

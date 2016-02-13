@@ -7,6 +7,32 @@
     "name",
     "description"
   ],
+  "definitions": {
+    "license": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "enum": [
+            "Apache-2.0",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "BSD-4-Clause",
+            "GPL-2.0",
+            "GPL-2.0+",
+            "GPL-3.0",
+            "GPL-3.0+",
+            "LGPL-2.1",
+            "LGPL-2.1+",
+            "LGPL-3.0",
+            "LGPL-3.0+",
+            "MIT"
+          ]
+        }
+      ]
+    }
+  },
   "properties": {
     "name": {
       "type": "string",
@@ -14,7 +40,19 @@
     },
     "type": {
       "description": "Package type, either 'library' for common packages, 'composer-plugin' for plugins, 'metapackage' for empty packages, or a custom type ([a-z0-9-]+) defined by whatever project this package applies to.",
-      "type": "string"
+      "oneOf": [
+        {
+          "enum": [
+            "library",
+            "project",
+            "metapackage",
+            "composer-plugin"
+          ]
+        },
+        {
+          "type": "string"
+        }
+      ]
     },
     "target-dir": {
       "description": "DEPRECATED: Forces the package to be installed into the given subdirectory path. This is used for autoloading PSR-0 packages that do not contain their full path. Use forward slashes for cross-platform compatibility.",
@@ -45,9 +83,16 @@
       "description": "Package release date, in 'YYYY-MM-DD', 'YYYY-MM-DD HH:MM:SS' or 'YYYY-MM-DDTHH:MM:SSZ' format."
     },
     "license": {
-      "type": [
-        "string",
-        "array"
+      "oneOf": [
+        {
+          "$ref": "#/definitions/license"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/license"
+          }
+        }
       ],
       "description": "License name. Or an array of license names."
     },
@@ -275,14 +320,23 @@
         },
         "classmap": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "This is an array of directories that contain classes to be included in the class-map generation process."
         },
         "files": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "This is an array of files that are always required on every request."
         },
         "exclude-from-classmap": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "This is an array of patterns to exclude from autoload classmap generation. (e.g. \"exclude-from-classmap\": [\"/test/\", \"/tests/\", \"/Tests/\"]"
         }
       }
@@ -303,9 +357,15 @@
         },
         "classmap": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "This is an array of directories that contain classes to be included in the class-map generation process."
         },
         "files": {
+          "items": {
+            "type": "string"
+          },
           "type": "array",
           "description": "This is an array of files that are always required on every request."
         }
@@ -319,6 +379,9 @@
       "properties": {
         "exclude": {
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "A list of patterns for paths to exclude or include if prefixed with an exclamation mark."
         }
       }
@@ -332,11 +395,14 @@
       "additionalProperties": true
     },
     "minimum-stability": {
-      "type": [
-        "string"
+      "enum": [
+        "dev",
+        "alpha",
+        "beta",
+        "RC",
+        "stable"
       ],
-      "description": "The minimum stability the packages must have to be install-able. Possible values are: dev, alpha, beta, RC, stable.",
-      "pattern": "^dev|alpha|beta|rc|RC|stable$"
+      "description": "The minimum stability the packages must have to be install-able. Possible values are: dev, alpha, beta, RC, stable."
     },
     "prefer-stable": {
       "type": [
@@ -369,114 +435,226 @@
       "description": "Scripts listeners that will be executed before/after some events.",
       "properties": {
         "pre-install-cmd": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs before the install command is executed, contains one or more Class::method callables or shell commands."
         },
         "post-install-cmd": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after the install command is executed, contains one or more Class::method callables or shell commands."
         },
         "pre-update-cmd": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs before the update command is executed, contains one or more Class::method callables or shell commands."
         },
         "post-update-cmd": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after the update command is executed, contains one or more Class::method callables or shell commands."
         },
         "pre-status-cmd": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs before the status command is executed, contains one or more Class::method callables or shell commands."
         },
         "post-status-cmd": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after the status command is executed, contains one or more Class::method callables or shell commands."
         },
         "pre-package-install": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs before a package is installed, contains one or more Class::method callables or shell commands."
         },
         "post-package-install": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after a package is installed, contains one or more Class::method callables or shell commands."
         },
         "pre-package-update": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs before a package is updated, contains one or more Class::method callables or shell commands."
         },
         "post-package-update": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after a package is updated, contains one or more Class::method callables or shell commands."
         },
         "pre-package-uninstall": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs before a package has been uninstalled, contains one or more Class::method callables or shell commands."
         },
         "post-package-uninstall": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after a package has been uninstalled, contains one or more Class::method callables or shell commands."
         },
         "pre-autoload-dump": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs before the autoloader is dumped, contains one or more Class::method callables or shell commands."
         },
         "post-autoload-dump": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after the autoloader is dumped, contains one or more Class::method callables or shell commands."
         },
         "post-root-package-install": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after the root-package is installed, contains one or more Class::method callables or shell commands."
         },
         "post-create-project-cmd": {
-          "type": [
-            "array",
-            "string"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           ],
           "description": "Occurs after the create-project command is executed, contains one or more Class::method callables or shell commands."
         }
@@ -523,9 +701,7 @@
       }
     },
     "non-feature-branches": {
-      "type": [
-        "array"
-      ],
+      "type": "array",
       "description": "A set of string or regex patterns for non-numeric branch names that will not be handled as feature branches.",
       "items": {
         "type": "string"
