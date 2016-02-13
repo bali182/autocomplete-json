@@ -2,13 +2,18 @@ import {ArrayTraverser, PositionInfo, IPositionInfo, ValueHolder} from './utils'
 import * as _ from 'lodash';
 import {IToken, TokenType} from './tokenizer'
 
+interface IAtomPoint {
+  row: number,
+  column: number
+}
+
 export interface IStructureInfo {
   contents: Object | Array<any>,
   positionInfo: PositionInfo,
   tokens: Array<IToken>
 }
 
-function intersectsWithToken(position: TextBuffer.IPoint, token: IToken): boolean {
+function intersectsWithToken(position: IAtomPoint, token: IToken): boolean {
   const tRow = token.line - 1;
   const pRow = position.row;
   const tCol = token.col;
@@ -22,7 +27,7 @@ function intersectsWithToken(position: TextBuffer.IPoint, token: IToken): boolea
   }
 }
 
-function isBetweenTokenType(position: TextBuffer.IPoint, firstToken: IToken, secondToken: IToken) {
+function isBetweenTokenType(position: IAtomPoint, firstToken: IToken, secondToken: IToken) {
   const pRow = position.row;
   const pCol = position.column;
   const fRow = firstToken.line - 1;
@@ -40,7 +45,7 @@ function isBetweenTokenType(position: TextBuffer.IPoint, firstToken: IToken, sec
     || (pRow > fRow && pRow === sRow && pCol < sStart); // firstToken \n+ position secondToken
 }
 
-function consumeValue(tokens: ArrayTraverser<IToken>, container: Array<any>, position: TextBuffer.IPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
+function consumeValue(tokens: ArrayTraverser<IToken>, container: Array<any>, position: IAtomPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
   const valueStartToken = tokens.next();
 
   function checkPosition() {
@@ -85,7 +90,7 @@ function consumeValue(tokens: ArrayTraverser<IToken>, container: Array<any>, pos
   return posInfo;
 }
 
-function consumeKeyValuePair(object: Object, tokens: ArrayTraverser<IToken>, position: TextBuffer.IPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
+function consumeKeyValuePair(object: Object, tokens: ArrayTraverser<IToken>, position: IAtomPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
   if (tokens.hasNext() && tokens.peekNext().type === TokenType.END_OBJECT) {
     if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.current(), tokens.peekNext())) {
       const info = posInfo.setKeyPosition()
@@ -142,7 +147,7 @@ function consumeKeyValuePair(object: Object, tokens: ArrayTraverser<IToken>, pos
   }
 }
 
-function consumeObject(object: Object, tokens: ArrayTraverser<IToken>, position: TextBuffer.IPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
+function consumeObject(object: Object, tokens: ArrayTraverser<IToken>, position: IAtomPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
   while (tokens.hasNext()) {
     consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder);
     if (tokens.hasNext()) {
@@ -156,7 +161,7 @@ function consumeObject(object: Object, tokens: ArrayTraverser<IToken>, position:
   }
 }
 
-function consumeArray(array: Array<any>, tokens: ArrayTraverser<IToken>, position: TextBuffer.IPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
+function consumeArray(array: Array<any>, tokens: ArrayTraverser<IToken>, position: IAtomPoint, posInfo: PositionInfo, posInfoHolder: ValueHolder<IPositionInfo>) {
   let index = 0;
   while (tokens.hasNext()) {
     if (tokens.hasNext()) {
@@ -200,7 +205,7 @@ function consumeArray(array: Array<any>, tokens: ArrayTraverser<IToken>, positio
   }
 }
 
-export function provideStructure(tokensArray: Array<IToken>, position: TextBuffer.IPoint): IStructureInfo {
+export function provideStructure(tokensArray: Array<IToken>, position: IAtomPoint): IStructureInfo {
   const tokens = new ArrayTraverser(tokensArray);
 
   if (!tokens.hasNext()) {
