@@ -5,6 +5,7 @@ import {FileProposalProvider} from './file-proposal-provider';
 import PackageJsonDependecyProposalProvider from './providers/package/package-json-dependency-proposal-provider';
 import BabelRCPresetsProposalProvider from './providers/babelrc/babelrc-presets-proposal-provider';
 import BabelRCPluginsProposalProvider from './providers/babelrc/babelrc-plugins-proposal-provider';
+import ComposerJsonDependecyProposalProvider from './providers/composer/composer-json-dependency-proposal-provider';
 
 // Schema provider instances
 import tsconfigJsonSchemaProposalProvider from './providers/tsconfig/tsconfig-json-schema-proposal-provider';
@@ -25,6 +26,7 @@ export const defaultProviders: Array<IProposalProvider> = [
   new PackageJsonDependecyProposalProvider(),
   new BabelRCPresetsProposalProvider(),
   new BabelRCPluginsProposalProvider(),
+  new ComposerJsonDependecyProposalProvider(),
 
   new FileProposalProvider(tsConfigFiles),
   new FileProposalProvider(packageFiles),
