@@ -8,7 +8,7 @@ export interface IRequest {
   isBetweenQuotes: boolean,
   isFileEmpty: boolean,
   shouldAddComma: boolean
-  editor: AtomCore.IEditor,
+  editor: any, // TextEditor
 }
 
 export interface IProposal {

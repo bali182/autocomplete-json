@@ -1,4 +1,4 @@
-/// <reference path="../typings/tsd" />
+/// <reference path="../typings/main" />
 
 import RootProvider from './root-provider';
 import {IJsonSchemaProvider, IProposalProvider} from './provider-api';
