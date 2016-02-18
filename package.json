@@ -8,15 +8,13 @@
     "url": "git+https://github.com/bali182/autocomplete-json.git"
   },
   "keywords": [
-    "atom",
-    "package",
-    "package.json",
-    "tsconfig",
-    "tsconfig.json",
     "autocomplete",
-    "autocomplete plus",
-    "bower.json",
-    "babelrc"
+    "json",
+    "package",
+    "tsconfig",
+    "bower",
+    "babelrc",
+    "composer"
   ],
   "author": "Balazs Edes",
   "license": "MIT",
