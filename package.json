@@ -27,11 +27,9 @@
     "lodash": "^3.10.1",
     "minimatch": "^3.0.0",
     "node-fetch": "^1.3.3",
-    "npm-package-lookup": "^0.1.2",
-    "packagist-package-lookup": "^0.1.1",
+    "npm-package-lookup": "^0.2.1",
+    "packagist-package-lookup": "^0.2.0",
     "query-string": "^3.0.0",
-    "semver-stable": "^2.0.4",
-    "semver-utils": "^1.1.1",
     "tokenizer2": "^1.2.0",
     "valid-url": "^1.0.9"
   },

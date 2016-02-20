@@ -1,17 +1,16 @@
 var lodash_1 = require('lodash');
-var stable = require('semver-stable');
-function createDependencyProposal(request, item) {
+function createDependencyProposal(request, dependency) {
     var isBetweenQuotes = request.isBetweenQuotes, shouldAddComma = request.shouldAddComma;
     var proposal = {};
-    proposal.displayText = item.name;
+    proposal.displayText = dependency.name;
     proposal.rightLabel = 'dependency';
     proposal.type = 'property';
-    proposal.description = item.description;
+    proposal.description = dependency.description;
     if (isBetweenQuotes) {
-        proposal.text = item.name;
+        proposal.text = dependency.name;
     }
     else {
-        proposal.snippet = '"' + item.name + '": "$1"' + (shouldAddComma ? ',' : '');
+        proposal.snippet = '"' + dependency.name + '": "$1"' + (shouldAddComma ? ',' : '');
     }
     return proposal;
 }
@@ -46,8 +45,10 @@ var SemverDependencyProposalProvider = (function () {
     };
     SemverDependencyProposalProvider.prototype.getDependencyKeysProposals = function (request) {
         var prefix = request.prefix;
+        var dependencyFilter = this.config.getDependencyFilter(request);
         return this.config.search(prefix).then(function (packages) {
-            return packages.map(function (dependency) { return createDependencyProposal(request, dependency); });
+            return packages.filter(function (dependency) { return dependencyFilter(dependency.name); })
+                .map(function (dependency) { return createDependencyProposal(request, dependency); });
         });
     };
     SemverDependencyProposalProvider.prototype.getDependencyVersionsProposals = function (request) {
@@ -55,8 +56,7 @@ var SemverDependencyProposalProvider = (function () {
         var packageName = segments[1], rest = segments.slice(2);
         var trimmedPrefix = lodash_1.trimLeft(prefix, '~^<>="');
         return this.config.versions(packageName.toString()).then(function (versions) {
-            return versions.filter(function (version) { return stable.is(version); })
-                .filter(function (version) { return lodash_1.startsWith(version, trimmedPrefix); })
+            return versions.filter(function (version) { return lodash_1.startsWith(version, trimmedPrefix); })
                 .map(function (version) { return createVersionProposal(request, version); });
         });
     };

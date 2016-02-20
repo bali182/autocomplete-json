@@ -1,30 +1,30 @@
 import {IMatcher, IRequest, IProposalProvider, IProposal, IFilePatternProvider} from './provider-api'
 import {flatten, trimLeft, trim, startsWith} from 'lodash'
-const stable = require('semver-stable');
 
-export interface IPackage {
+export interface IDependency {
   name: string,
   description?: string
 }
 
 export interface IDependecyProposalConfig extends IFilePatternProvider {
-  search(prefix: string): Promise<Array<IPackage>>
+  search(prefix: string): Promise<Array<IDependency>>
   versions(prefix: string): Promise<Array<string>>
   dependencyRequestMatcher(): IMatcher<IRequest>
   versionRequestMatcher(): IMatcher<IRequest>
+  getDependencyFilter(request: IRequest): (dependencyName: string) => boolean;
 }
 
-function createDependencyProposal(request: IRequest, item: IPackage): IProposal {
+function createDependencyProposal(request: IRequest, dependency: IDependency): IProposal {
   const {isBetweenQuotes, shouldAddComma} = request;
   const proposal: IProposal = {}
-  proposal.displayText = item.name;
+  proposal.displayText = dependency.name;
   proposal.rightLabel = 'dependency';
   proposal.type = 'property';
-  proposal.description = item.description;
+  proposal.description = dependency.description;
   if (isBetweenQuotes) {
-    proposal.text = item.name;
+    proposal.text = dependency.name;
   } else {
-    proposal.snippet = '"' + item.name + '": "$1"' + (shouldAddComma ? ',' : '');
+    proposal.snippet = '"' + dependency.name + '": "$1"' + (shouldAddComma ? ',' : '');
   }
   return proposal;
 }
@@ -62,8 +62,10 @@ export class SemverDependencyProposalProvider implements IProposalProvider {
 
   getDependencyKeysProposals(request: IRequest): Promise<Array<IProposal>> {
     const {prefix} = request;
+    const dependencyFilter = this.config.getDependencyFilter(request);
     return this.config.search(prefix).then(packages =>
-      packages.map(dependency => createDependencyProposal(request, dependency))
+      packages.filter(dependency => dependencyFilter(dependency.name))
+        .map(dependency => createDependencyProposal(request, dependency))
     );
   }
 
@@ -72,8 +74,7 @@ export class SemverDependencyProposalProvider implements IProposalProvider {
     const [, packageName, ...rest] = segments;
     const trimmedPrefix = trimLeft(prefix, '~^<>="');
     return this.config.versions(packageName.toString()).then(versions =>
-      versions.filter(version => stable.is(version))
-        .filter(version => startsWith(version, trimmedPrefix))
+      versions.filter(version => startsWith(version, trimmedPrefix))
         .map(version => createVersionProposal(request, version))
     );
   }
