@@ -1,5 +1,6 @@
 import {IProposalProvider, IJsonSchemaProvider} from './provider-api';
 import {FileProposalProvider} from './file-proposal-provider';
+import {SemverDependencyProposalProvider} from './semver-dependency-proposal-provider';
 
 // Regular provider classes
 import PackageJsonDependecyProposalProvider from './providers/package/package-json-dependency-proposal-provider';
@@ -22,18 +23,25 @@ import bowerFiles from './providers/bower/bower-json-files-proposal-provider';
 import composerDirsAndPhpFiles from './providers/composer/composer-json-php-file-or-folder-proposal-provider';
 import composerAnyFiles from './providers/composer/composer-json-any-file-proposal-provider';
 
+// Semver proposal providers
+import composerDepConfig from './providers/composer/composer-json-dependency-config';
+import packageDepConfig from './providers/package/package-json-dependency-config';
+
 export const defaultProviders: Array<IProposalProvider> = [
-  new PackageJsonDependecyProposalProvider(),
+  //new PackageJsonDependecyProposalProvider(),
   new BabelRCPresetsProposalProvider(),
   new BabelRCPluginsProposalProvider(),
-  new ComposerJsonDependecyProposalProvider(),
+  //new ComposerJsonDependecyProposalProvider(),
 
   new FileProposalProvider(tsConfigFiles),
   new FileProposalProvider(packageFiles),
   new FileProposalProvider(packageDirectories),
   new FileProposalProvider(bowerFiles),
   new FileProposalProvider(composerDirsAndPhpFiles),
-  new FileProposalProvider(composerAnyFiles)
+  new FileProposalProvider(composerAnyFiles),
+
+  new SemverDependencyProposalProvider(packageDepConfig),
+  new SemverDependencyProposalProvider(composerDepConfig)
 ];
 
 export const defaultSchemaProviders: Array<IJsonSchemaProvider> = [
