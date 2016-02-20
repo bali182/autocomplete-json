@@ -30,6 +30,8 @@
     "npm-package-lookup": "^0.1.2",
     "packagist-package-lookup": "^0.1.1",
     "query-string": "^3.0.0",
+    "semver-stable": "^2.0.4",
+    "semver-utils": "^1.1.1",
     "tokenizer2": "^1.2.0",
     "valid-url": "^1.0.9"
   },
