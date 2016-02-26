@@ -1,3 +1,5 @@
+"use strict";
+
 (function (StorageType) {
     StorageType[StorageType["FILE"] = 'FILE'] = "FILE";
     StorageType[StorageType["FOLDER"] = 'FOLDER'] = "FOLDER";

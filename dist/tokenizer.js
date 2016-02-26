@@ -1,3 +1,5 @@
+"use strict";
+
 var tokenizer2 = require('tokenizer2');
 function createTokenStream() {
     var stream = tokenizer2();
@@ -44,8 +46,12 @@ function tokenize(buffer) {
                 tokens.push(token);
             }
         });
-        tokenStream.on('error', function (error) { return reject(tokens); });
-        tokenStream.on('end', function () { return resolve(tokens); });
+        tokenStream.on('error', function (error) {
+            return reject(tokens);
+        });
+        tokenStream.on('end', function () {
+            return resolve(tokens);
+        });
         tokenStream.end(buffer);
     });
 }
