@@ -1,168 +1,271 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var lodash_1 = require('lodash');
-var IndexMatcher = (function () {
+
+var IndexMatcher = function () {
     function IndexMatcher(index) {
+        _classCallCheck(this, IndexMatcher);
+
         this.index = index;
     }
-    IndexMatcher.prototype.matches = function (segment) {
-        return lodash_1.isNumber(segment) && this.index === segment;
-    };
+
+    _createClass(IndexMatcher, [{
+        key: "matches",
+        value: function matches(segment) {
+            return lodash_1.isNumber(segment) && this.index === segment;
+        }
+    }]);
+
     return IndexMatcher;
-})();
-var KeyMatcher = (function () {
+}();
+
+var KeyMatcher = function () {
     function KeyMatcher(key) {
+        _classCallCheck(this, KeyMatcher);
+
         this.key = key;
     }
-    KeyMatcher.prototype.matches = function (segment) {
-        return lodash_1.isString(segment) && this.key === segment;
-    };
+
+    _createClass(KeyMatcher, [{
+        key: "matches",
+        value: function matches(segment) {
+            return lodash_1.isString(segment) && this.key === segment;
+        }
+    }]);
+
     return KeyMatcher;
-})();
+}();
+
 var AnyIndexMatcher = {
-    matches: function (segment) {
+    matches: function matches(segment) {
         return lodash_1.isNumber(segment);
     }
 };
 var AnyKeyMatcher = {
-    matches: function (segment) {
+    matches: function matches(segment) {
         return lodash_1.isString(segment);
     }
 };
 var AnyMatcher = {
-    matches: function (segment) {
+    matches: function matches(segment) {
         return true;
     }
 };
-var JsonPathMatcher = (function () {
-    function JsonPathMatcher(matchers) {
-        if (matchers === void 0) { matchers = []; }
+
+var JsonPathMatcher = function () {
+    function JsonPathMatcher() {
+        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+        _classCallCheck(this, JsonPathMatcher);
+
         this.matchers = matchers;
     }
-    JsonPathMatcher.prototype.index = function (value) {
-        if (value === void 0) { value = undefined; }
-        var matcher;
-        if (value === undefined) {
-            matcher = AnyIndexMatcher;
+
+    _createClass(JsonPathMatcher, [{
+        key: "index",
+        value: function index() {
+            var value = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+
+            var matcher = undefined;
+            if (value === undefined) {
+                matcher = AnyIndexMatcher;
+            } else {
+                matcher = lodash_1.isArray(value) ? new OrMatcher(value.map(function (v) {
+                    return new IndexMatcher(v);
+                })) : new IndexMatcher(value);
+            }
+            return new JsonPathMatcher(this.matchers.concat([matcher]));
         }
-        else {
-            matcher = lodash_1.isArray(value)
-                ? new OrMatcher(value.map(function (v) { return new IndexMatcher(v); }))
-                : new IndexMatcher(value);
+    }, {
+        key: "key",
+        value: function key() {
+            var value = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+
+            var matcher = undefined;
+            if (value === undefined) {
+                matcher = AnyKeyMatcher;
+            } else {
+                matcher = lodash_1.isArray(value) ? new OrMatcher(value.map(function (v) {
+                    return new KeyMatcher(v);
+                })) : new KeyMatcher(value);
+            }
+            return new JsonPathMatcher(this.matchers.concat([matcher]));
         }
-        return new JsonPathMatcher(this.matchers.concat([matcher]));
-    };
-    JsonPathMatcher.prototype.key = function (value) {
-        if (value === void 0) { value = undefined; }
-        var matcher;
-        if (value === undefined) {
-            matcher = AnyKeyMatcher;
+    }, {
+        key: "any",
+        value: function any() {
+            return new JsonPathMatcher(this.matchers.concat([AnyMatcher]));
         }
-        else {
-            matcher = lodash_1.isArray(value)
-                ? new OrMatcher(value.map(function (v) { return new KeyMatcher(v); }))
-                : new KeyMatcher(value);
-        }
-        return new JsonPathMatcher(this.matchers.concat([matcher]));
-    };
-    JsonPathMatcher.prototype.any = function () {
-        return new JsonPathMatcher(this.matchers.concat([AnyMatcher]));
-    };
-    JsonPathMatcher.prototype.matches = function (segments) {
-        if (segments.length !== this.matchers.length) {
-            return false;
-        }
-        for (var i = 0; i < this.matchers.length; ++i) {
-            if (!this.matchers[i].matches(segments[i])) {
+    }, {
+        key: "matches",
+        value: function matches(segments) {
+            if (segments.length !== this.matchers.length) {
                 return false;
             }
+            for (var i = 0; i < this.matchers.length; ++i) {
+                if (!this.matchers[i].matches(segments[i])) {
+                    return false;
+                }
+            }
+            return true;
         }
-        return true;
-    };
+    }]);
+
     return JsonPathMatcher;
-})();
-var PathRequestMatcher = (function () {
+}();
+
+var PathRequestMatcher = function () {
     function PathRequestMatcher(matcher) {
+        _classCallCheck(this, PathRequestMatcher);
+
         this.matcher = matcher;
     }
-    PathRequestMatcher.prototype.matches = function (request) {
-        return !!request.segments && this.matcher.matches(request.segments);
-    };
+
+    _createClass(PathRequestMatcher, [{
+        key: "matches",
+        value: function matches(request) {
+            return !!request.segments && this.matcher.matches(request.segments);
+        }
+    }]);
+
     return PathRequestMatcher;
-})();
+}();
+
 var KeyRequestMatcher = {
-    matches: function (request) {
+    matches: function matches(request) {
         return request.isKeyPosition;
     }
 };
 var ValueRequestMatcher = {
-    matches: function (request) {
+    matches: function matches(request) {
         return request.isValuePosition;
     }
 };
-var RequestMatcher = (function () {
-    function RequestMatcher(matchers) {
-        if (matchers === void 0) { matchers = []; }
+
+var RequestMatcher = function () {
+    function RequestMatcher() {
+        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+        _classCallCheck(this, RequestMatcher);
+
         this.matchers = matchers;
     }
-    RequestMatcher.prototype.path = function (matcher) {
-        return new RequestMatcher(this.matchers.concat([new PathRequestMatcher(matcher)]));
-    };
-    RequestMatcher.prototype.value = function () {
-        return new RequestMatcher(this.matchers.concat([ValueRequestMatcher]));
-    };
-    RequestMatcher.prototype.key = function () {
-        return new RequestMatcher(this.matchers.concat([KeyRequestMatcher]));
-    };
-    RequestMatcher.prototype.matches = function (request) {
-        return this.matchers.every(function (matcher) { return matcher.matches(request); });
-    };
+
+    _createClass(RequestMatcher, [{
+        key: "path",
+        value: function path(matcher) {
+            return new RequestMatcher(this.matchers.concat([new PathRequestMatcher(matcher)]));
+        }
+    }, {
+        key: "value",
+        value: function value() {
+            return new RequestMatcher(this.matchers.concat([ValueRequestMatcher]));
+        }
+    }, {
+        key: "key",
+        value: function key() {
+            return new RequestMatcher(this.matchers.concat([KeyRequestMatcher]));
+        }
+    }, {
+        key: "matches",
+        value: function matches(request) {
+            return this.matchers.every(function (matcher) {
+                return matcher.matches(request);
+            });
+        }
+    }]);
+
     return RequestMatcher;
-})();
-var CompositeMatcher = (function () {
-    function CompositeMatcher(matchers) {
-        if (matchers === void 0) { matchers = []; }
+}();
+
+var CompositeMatcher = function () {
+    function CompositeMatcher() {
+        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+        _classCallCheck(this, CompositeMatcher);
+
         this.matchers = matchers;
     }
-    CompositeMatcher.prototype.append = function (matcher) {
-        return this.createCompositeMatcher(this.matchers.concat([matcher]));
-    };
-    CompositeMatcher.prototype.prepend = function (matcher) {
-        return this.createCompositeMatcher([matcher].concat(this.matchers));
-    };
+
+    _createClass(CompositeMatcher, [{
+        key: "append",
+        value: function append(matcher) {
+            return this.createCompositeMatcher(this.matchers.concat([matcher]));
+        }
+    }, {
+        key: "prepend",
+        value: function prepend(matcher) {
+            return this.createCompositeMatcher([matcher].concat(this.matchers));
+        }
+    }]);
+
     return CompositeMatcher;
-})();
-var AndMatcher = (function (_super) {
-    __extends(AndMatcher, _super);
-    function AndMatcher(matchers) {
-        if (matchers === void 0) { matchers = []; }
-        _super.call(this, matchers);
+}();
+
+var AndMatcher = function (_CompositeMatcher) {
+    _inherits(AndMatcher, _CompositeMatcher);
+
+    function AndMatcher() {
+        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+        _classCallCheck(this, AndMatcher);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(AndMatcher).call(this, matchers));
     }
-    AndMatcher.prototype.createCompositeMatcher = function (matchers) {
-        return new AndMatcher(matchers);
-    };
-    AndMatcher.prototype.matches = function (input) {
-        return this.matchers.every(function (matcher) { return matcher.matches(input); });
-    };
+
+    _createClass(AndMatcher, [{
+        key: "createCompositeMatcher",
+        value: function createCompositeMatcher(matchers) {
+            return new AndMatcher(matchers);
+        }
+    }, {
+        key: "matches",
+        value: function matches(input) {
+            return this.matchers.every(function (matcher) {
+                return matcher.matches(input);
+            });
+        }
+    }]);
+
     return AndMatcher;
-})(CompositeMatcher);
-var OrMatcher = (function (_super) {
-    __extends(OrMatcher, _super);
-    function OrMatcher(matchers) {
-        if (matchers === void 0) { matchers = []; }
-        _super.call(this, matchers);
+}(CompositeMatcher);
+
+var OrMatcher = function (_CompositeMatcher2) {
+    _inherits(OrMatcher, _CompositeMatcher2);
+
+    function OrMatcher() {
+        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+        _classCallCheck(this, OrMatcher);
+
+        return _possibleConstructorReturn(this, Object.getPrototypeOf(OrMatcher).call(this, matchers));
     }
-    OrMatcher.prototype.createCompositeMatcher = function (matchers) {
-        return new OrMatcher(matchers);
-    };
-    OrMatcher.prototype.matches = function (input) {
-        return this.matchers.some(function (matcher) { return matcher.matches(input); });
-    };
+
+    _createClass(OrMatcher, [{
+        key: "createCompositeMatcher",
+        value: function createCompositeMatcher(matchers) {
+            return new OrMatcher(matchers);
+        }
+    }, {
+        key: "matches",
+        value: function matches(input) {
+            return this.matchers.some(function (matcher) {
+                return matcher.matches(input);
+            });
+        }
+    }]);
+
     return OrMatcher;
-})(CompositeMatcher);
+}(CompositeMatcher);
+
 function path() {
     return new JsonPathMatcher();
 }
@@ -172,18 +275,18 @@ function request() {
 }
 exports.request = request;
 function and() {
-    var matchers = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        matchers[_i - 0] = arguments[_i];
+    for (var _len = arguments.length, matchers = Array(_len), _key = 0; _key < _len; _key++) {
+        matchers[_key] = arguments[_key];
     }
+
     return new AndMatcher(matchers);
 }
 exports.and = and;
 function or() {
-    var matchers = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        matchers[_i - 0] = arguments[_i];
+    for (var _len2 = arguments.length, matchers = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        matchers[_key2] = arguments[_key2];
     }
+
     return new OrMatcher(matchers);
 }
 exports.or = or;

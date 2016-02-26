@@ -34,7 +34,7 @@ export default <IDependecyProposalConfig>{
       return (dependency: string) => true;
     }
     const objects = DEPENDENCY_PROPERTIES.map(prop => contents[prop] || {})
-    const merged: Object = (<(...args: any) => Object>assign)(...objects);
-    return (dependency: string) => !merged[dependency];
+    const merged: Object = (<(...args: any) => Object>assign)(...objects) || {};
+    return (dependency: string) => !merged.hasOwnProperty(dependency);
   }
 };
