@@ -30,6 +30,9 @@ var RootProvider = function () {
             var activatedManually = originalRequest.activatedManually;
             var prefix = originalRequest.prefix;
 
+            if (!this.checkRequest(originalRequest)) {
+                return Promise.resolve([]);
+            }
             if (editor.lineTextForBufferRow(bufferPosition.row).charAt(bufferPosition.column - 1) === ',' && !activatedManually) {
                 return Promise.resolve([]);
             }
@@ -47,6 +50,14 @@ var RootProvider = function () {
                     return Array.prototype.concat.apply([], proposals);
                 });
             });
+        }
+    }, {
+        key: 'checkRequest',
+        value: function checkRequest(request) {
+            var editor = request.editor;
+            var bufferPosition = request.bufferPosition;
+
+            return !!(editor && editor.buffer && editor.buffer.file && editor.buffer.file.getBaseName && editor.lineTextForBufferRow && editor.getText && bufferPosition);
         }
     }, {
         key: 'buildRequest',
