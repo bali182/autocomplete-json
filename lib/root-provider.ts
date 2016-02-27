@@ -14,6 +14,10 @@ export default class RootProvider {
   getSuggestions(originalRequest: any): Promise<Array<IProposal>> {
     const {editor, bufferPosition, activatedManually, prefix} = originalRequest;
 
+    if (!this.checkRequest(originalRequest)) {
+      return Promise.resolve([]);
+    }
+
     if (editor.lineTextForBufferRow(bufferPosition.row).charAt(bufferPosition.column - 1) === ',' && !activatedManually) {
       return Promise.resolve([]); // hack, to prevent activation right after inserting a comma
     }
@@ -30,6 +34,19 @@ export default class RootProvider {
           .then(proposals => Array.prototype.concat.apply([], proposals));
       });
   }
+
+  checkRequest(request: any) {
+    const {editor, bufferPosition} = request; 
+    return !!(editor
+      && editor.buffer
+      && editor.buffer.file
+      && editor.buffer.file.getBaseName
+      && editor.lineTextForBufferRow
+      && editor.getText
+      && bufferPosition
+    );
+  }
+
 
   buildRequest(structure: IStructureInfo, originalRequest: any): IRequest {
     const {contents, positionInfo, tokens} = structure;
