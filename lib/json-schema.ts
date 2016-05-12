@@ -125,18 +125,35 @@ export abstract class BaseSchema implements ISchemaVisitee {
   abstract getDisplayType(): string;
 }
 
+export class PatternProperty {
+  constructor(private pattern: RegExp, private schema: BaseSchema) {}
+  
+  getPattern(): RegExp {
+    return this.pattern;
+  }
+  
+  getSchema(): BaseSchema {
+    return this.schema;
+  }
+}
+
 export class ObjectSchema extends BaseSchema {
   private keys: Array<string>;
   private properties: Dictionary<BaseSchema>;
+  private patternProperties: Array<PatternProperty>;
 
   constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
     super(schema, parent, schemaRoot);
     const properties = this.schema.properties || {};
+    const patternProperties = this.schema.patternProperties || {};
     this.keys = Object.keys(properties);
     this.properties = this.keys.reduce((object, key) => {
       object[key] = this.getSchemaRoot().wrap(properties[key], this)
       return object;
     }, <Dictionary<BaseSchema>>{});
+    this.patternProperties = Object.keys(patternProperties)
+      .map(key => [key, patternProperties[key]])
+      .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), this.getSchemaRoot().wrap(rawSchema, this)));
   }
   getKeys() {
     return this.keys;
@@ -148,6 +165,10 @@ export class ObjectSchema extends BaseSchema {
 
   getProperties() {
     return this.properties;
+  }
+  
+  getPatternProperties(): Array<PatternProperty> {
+    return this.patternProperties;
   }
 
   getDefaultValue(): Object {

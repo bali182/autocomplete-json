@@ -96,7 +96,14 @@ var SchemaInspectorVisitor = function (_DefaultSchemaVisitor) {
         key: 'visitObjectSchema',
         value: function visitObjectSchema(schema, segment) {
             var childSchema = schema.getProperty(segment);
-            return childSchema ? [childSchema] : [];
+            if (childSchema) {
+                return [childSchema];
+            }
+            return schema.getPatternProperties().filter(function (p) {
+                return p.getPattern().test(segment);
+            }).map(function (p) {
+                return p.getSchema();
+            });
         }
     }, {
         key: 'visitArraySchema',
