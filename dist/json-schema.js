@@ -1,5 +1,7 @@
 "use strict";
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -165,6 +167,31 @@ var BaseSchema = function () {
 
 exports.BaseSchema = BaseSchema;
 
+var PatternProperty = function () {
+    function PatternProperty(pattern, schema) {
+        _classCallCheck(this, PatternProperty);
+
+        this.pattern = pattern;
+        this.schema = schema;
+    }
+
+    _createClass(PatternProperty, [{
+        key: 'getPattern',
+        value: function getPattern() {
+            return this.pattern;
+        }
+    }, {
+        key: 'getSchema',
+        value: function getSchema() {
+            return this.schema;
+        }
+    }]);
+
+    return PatternProperty;
+}();
+
+exports.PatternProperty = PatternProperty;
+
 var ObjectSchema = function (_BaseSchema) {
     _inherits(ObjectSchema, _BaseSchema);
 
@@ -174,11 +201,21 @@ var ObjectSchema = function (_BaseSchema) {
         var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(ObjectSchema).call(this, schema, parent, schemaRoot));
 
         var properties = _this3.schema.properties || {};
+        var patternProperties = _this3.schema.patternProperties || {};
         _this3.keys = Object.keys(properties);
         _this3.properties = _this3.keys.reduce(function (object, key) {
             object[key] = _this3.getSchemaRoot().wrap(properties[key], _this3);
             return object;
         }, {});
+        _this3.patternProperties = Object.keys(patternProperties).map(function (key) {
+            return [key, patternProperties[key]];
+        }).map(function (_ref) {
+            var _ref2 = _slicedToArray(_ref, 2);
+
+            var pattern = _ref2[0];
+            var rawSchema = _ref2[1];
+            return new PatternProperty(new RegExp(pattern, 'g'), _this3.getSchemaRoot().wrap(rawSchema, _this3));
+        });
         return _this3;
     }
 
@@ -196,6 +233,11 @@ var ObjectSchema = function (_BaseSchema) {
         key: 'getProperties',
         value: function getProperties() {
             return this.properties;
+        }
+    }, {
+        key: 'getPatternProperties',
+        value: function getPatternProperties() {
+            return this.patternProperties;
         }
     }, {
         key: 'getDefaultValue',

@@ -44,7 +44,12 @@ export class SchemaInspectorVisitor extends DefaultSchemaVisitor<string | number
 
   visitObjectSchema(schema: ObjectSchema, segment: string): Array<BaseSchema> {
     const childSchema = schema.getProperty(segment)
-    return childSchema ? [childSchema] : [];
+    if (childSchema) {
+      return [childSchema];
+    }
+    return schema.getPatternProperties()
+      .filter(p => p.getPattern().test(segment))
+      .map(p => p.getSchema());
   }
 
   visitArraySchema(schema: ArraySchema, segment: number): Array<BaseSchema> {
