@@ -14,6 +14,7 @@ import packageJsonSchemaProposalProvider from './providers/package/package-json-
 import bowerJsonSchemaProposalProvider from './providers/bower/bower-json-schema-proposal-provider';
 import babelrcJsonSchemaProposalProvider from './providers/babelrc/babelrc-json-schema-proposal-provider';
 import composerJsonSchemaProposalProvider from './providers/composer/composer-json-schema-proposal-provider';
+import awsJsonSchemaProposalProvider from './providers/aws/aws-json-schema-provider';
 
 // File config instances
 import tsConfigFiles from './providers/tsconfig/tsconfig-json-files-proposal-provider';
@@ -29,7 +30,7 @@ import packageDepConfig from './providers/package/package-json-dependency-config
 
 export const defaultProviders: Array<IProposalProvider> = [
   //new PackageJsonDependecyProposalProvider(),
-  new BabelRCPresetsProposalProvider(),
+  /*new BabelRCPresetsProposalProvider(),
   new BabelRCPluginsProposalProvider(),
   //new ComposerJsonDependecyProposalProvider(),
 
@@ -41,13 +42,14 @@ export const defaultProviders: Array<IProposalProvider> = [
   new FileProposalProvider(composerAnyFiles),
 
   new SemverDependencyProposalProvider(packageDepConfig),
-  new SemverDependencyProposalProvider(composerDepConfig)
+  new SemverDependencyProposalProvider(composerDepConfig)*/
 ];
 
 export const defaultSchemaProviders: Array<IJsonSchemaProvider> = [
-  tsconfigJsonSchemaProposalProvider,
+  /*tsconfigJsonSchemaProposalProvider,
   packageJsonSchemaProposalProvider,
   bowerJsonSchemaProposalProvider,
   babelrcJsonSchemaProposalProvider,
-  composerJsonSchemaProposalProvider
+  composerJsonSchemaProposalProvider,*/
+  awsJsonSchemaProposalProvider
 ];
