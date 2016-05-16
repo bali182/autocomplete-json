@@ -4,80 +4,77 @@ import * as fs from 'fs';
 const uri = require('uri-js');
 
 type Dictionary<T> = { [key: string]: T };
+type ResolverFn = (schema: any, parent: BaseSchema) => BaseSchema
 
 interface ISchemaVisitee {
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R;
 }
 
-const resolveRef = <any>memoize(function resolveRef(root: SchemaRoot, refPath: string): Object {
-  const {scheme, path, fragment} = uri.parse(refPath);
-  let rootObject: Object = null;
-  switch (scheme) {
-    case 'file': 
-      rootObject = JSON.parse(fs.readFileSync(path).toString()); 
-      break;
-    default: 
-      rootObject = root.getSchemaObject(); 
-      break;
+const resolveRef:(schema: Object, segments: Array<string>) => Object = <any>memoize(function (schema: Object, segments: Array<string>): Object {
+  if (isEmpty(segments)) {
+    return schema;
   }
-  const segments = fragment.split('/').slice(1);
-  
-  function resolveInternal(partialSchema: Object, refSegments: Array<string>): Object {
-    if (isEmpty(refSegments)) {
-      return partialSchema;
-    }
-    const [key, ...tail] = refSegments;
-    const subSchema = partialSchema[key];
-    return resolveInternal(subSchema, tail);
-  }
-  return resolveInternal(rootObject, segments);
+  const [key, ...tail] = segments;
+  const subSchema = schema[key];
+  return resolveRef(subSchema, tail);
 });
 
-function wrap(root: SchemaRoot, schema: any, parent: BaseSchema) {
-  if (!schema) {
-    console.warn(`${schema} schema found`);
-    return new AnySchema({}, parent, root);
-  }
-
-  if (schema.$ref) {
-    schema = resolveRef(root, schema.$ref);
-  }
-
-  if (isArray(schema.type)) {
-    const childSchemas = schema.type.map((type: string) => assign(clone(schema), { type }));
-    schema = {
-      oneOf: childSchemas
+function resolver(root: SchemaRoot): ResolverFn {
+  return function(schema: any, parent: BaseSchema): BaseSchema {
+    if (!schema) {
+      console.warn(`${schema} schema found`);
+      return new AnySchema({}, parent, root);
     }
-  }
-
-  if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
-    if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
-      return new ObjectSchema(schema, parent, root);
+    
+    let resolve: ResolverFn = null;
+    if (schema.$ref) {
+      const {scheme, path, fragment} = uri.parse(schema.$ref);
+      const segments = fragment.split('/').slice(1);
+      // TODO handle http scheme
+      if (scheme === 'file') {
+        schema = resolveRef(JSON.parse(fs.readFileSync(path).toString()), segments);
+        resolve = resolver(new SchemaRoot(schema));
+      } else {
+        schema = resolveRef(root.getSchemaObject(), segments);
+      }
     }
-    else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
-      return new ArraySchema(schema, parent, root);
+
+    if (isArray(schema.type)) {
+      const childSchemas = schema.type.map((type: string) => assign(clone(schema), { type }));
+      schema = {
+        oneOf: childSchemas
+      }
     }
-  }
 
-  if (isArray(schema.oneOf)) {
-    return new OneOfSchema(schema, parent, root);
-  } else if (isArray(schema.anyOf)) {
-    return new AnyOfSchema(schema, parent, root);
-  } else if (isArray(schema.allOf)) {
-    return new AllOfSchema(schema, parent, root);
-  } else if (isObject(schema.enum)) {
-    return new EnumSchema(schema, parent, root);
-  }
+    if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
+      if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
+        return new ObjectSchema(schema, parent, root, resolve);
+      }
+      else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
+        return new ArraySchema(schema, parent, root, resolve);
+      }
+    }
 
-  switch (schema.type) {
-    case 'boolean': return new BooleanSchema(schema, parent, root);
-    case 'number': return new NumberSchema(schema, parent, root);
-    case 'integer': return new NumberSchema(schema, parent, root);
-    case 'string': return new StringSchema(schema, parent, root);
-    case 'null': return new NullSchema(schema, parent, root);
+    if (isArray(schema.oneOf)) {
+      return new OneOfSchema(schema, parent, root, resolve);
+    } else if (isArray(schema.anyOf)) {
+      return new AnyOfSchema(schema, parent, root, resolve);
+    } else if (isArray(schema.allOf)) {
+      return new AllOfSchema(schema, parent, root, resolve);
+    } else if (isObject(schema.enum)) {
+      return new EnumSchema(schema, parent, root, resolve);
+    }
+
+    switch (schema.type) {
+      case 'boolean': return new BooleanSchema(schema, parent, root, resolve);
+      case 'number': return new NumberSchema(schema, parent, root, resolve);
+      case 'integer': return new NumberSchema(schema, parent, root, resolve);
+      case 'string': return new StringSchema(schema, parent, root, resolve);
+      case 'null': return new NullSchema(schema, parent, root, resolve);
+    }
+    console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
+    return new AnySchema({}, parent, root, resolve);
   }
-  console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
-  return new AnySchema({}, parent, root);
 }
 
 export class SchemaRoot {
@@ -94,7 +91,7 @@ export class SchemaRoot {
 
   constructor(schemaRoot: Object) {
     this.schemaRoot = schemaRoot;
-    this.schema = wrap(this, schemaRoot, null);
+    this.schema = resolver(this)(schemaRoot, null);
   }
 
   getExpandedSchemas(schema: BaseSchema) {
@@ -120,7 +117,14 @@ export class SchemaRoot {
 }
 
 export abstract class BaseSchema implements ISchemaVisitee {
-  constructor(protected schema: any, private parent: BaseSchema, private schemaRoot: SchemaRoot) { }
+  constructor(
+    protected schema: any, 
+    private parent: BaseSchema, 
+    private schemaRoot: SchemaRoot,
+    protected resolve: ResolverFn = null
+  ) { 
+    this.resolve = resolve || resolver(schemaRoot);
+  }
 
   getParent(): BaseSchema {
     return this.parent;
@@ -156,18 +160,18 @@ export class ObjectSchema extends BaseSchema {
   private properties: Dictionary<BaseSchema>;
   private patternProperties: Array<PatternProperty>;
 
-  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
-    super(schema, parent, schemaRoot);
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, resolve: ResolverFn = null) {
+    super(schema, parent, schemaRoot, resolve);
     const properties = this.schema.properties || {};
     const patternProperties = this.schema.patternProperties || {};
     this.keys = Object.keys(properties);
     this.properties = this.keys.reduce((object, key) => {
-      object[key] = wrap(this.getSchemaRoot(), properties[key], this)
+      object[key] = this.resolve(properties[key], this)
       return object;
     }, <Dictionary<BaseSchema>>{});
     this.patternProperties = Object.keys(patternProperties)
       .map(key => [key, patternProperties[key]])
-      .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), wrap(this.getSchemaRoot(), rawSchema, this)));
+      .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), this.resolve(rawSchema, this)));
   }
   getKeys() {
     return this.keys;
@@ -201,9 +205,9 @@ export class ObjectSchema extends BaseSchema {
 export class ArraySchema extends BaseSchema {
   private itemSchema: BaseSchema;
 
-  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, resolve: ResolverFn = null) {
     super(schema, parent, schemaRoot);
-    this.itemSchema = wrap(this.getSchemaRoot(), this.schema.items, this)
+    this.itemSchema = this.resolve(this.schema.items, this)
   }
 
   getItemSchema() {
@@ -250,9 +254,9 @@ export class EnumSchema extends BaseSchema {
 
 export abstract class CompositeSchema extends BaseSchema {
   private schemas: Array<BaseSchema>;
-  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, keyWord: string) {
-    super(schema, parent, schemaRoot);
-    this.schemas = schema[keyWord].map((schema: any) => wrap(this.getSchemaRoot(), schema, this));
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, keyWord: string, resolve: ResolverFn = null) {
+    super(schema, parent, schemaRoot, resolve);
+    this.schemas = schema[keyWord].map((schema: any) => this.resolve(schema, this));
   }
 
   getSchemas() {
@@ -271,8 +275,8 @@ export abstract class CompositeSchema extends BaseSchema {
 }
 
 export class AnyOfSchema extends CompositeSchema {
-  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
-    super(schema, parent, schemaRoot, 'anyOf');
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, resolve: ResolverFn = null) {
+    super(schema, parent, schemaRoot, 'anyOf', resolve);
   }
 
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
@@ -281,8 +285,8 @@ export class AnyOfSchema extends CompositeSchema {
 }
 
 export class AllOfSchema extends CompositeSchema {
-  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
-    super(schema, parent, schemaRoot, 'allOf');
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, resolve: ResolverFn = null) {
+    super(schema, parent, schemaRoot, 'allOf', resolve);
   }
 
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
@@ -291,8 +295,8 @@ export class AllOfSchema extends CompositeSchema {
 }
 
 export class OneOfSchema extends CompositeSchema {
-  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
-    super(schema, parent, schemaRoot, 'oneOf');
+  constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, resolve: ResolverFn = null) {
+    super(schema, parent, schemaRoot, 'oneOf', resolve);
   }
 
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R {
