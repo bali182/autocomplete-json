@@ -1,5 +1,7 @@
 import {assign, clone, isEmpty, isArray, isObject, memoize, flatten} from 'lodash';
 import {ISchemaVisitor, SchemaFlattenerVisitor, SchemaInspectorVisitor} from './json-schema-visitors';
+import * as fs from 'fs';
+const uri = require('uri-js');
 
 type Dictionary<T> = { [key: string]: T };
 
@@ -7,82 +9,103 @@ interface ISchemaVisitee {
   accept<P, R>(visitor: ISchemaVisitor<P, R>, parameter: P): R;
 }
 
+const resolveRef = <any>memoize(function resolveRef(root: SchemaRoot, refPath: string): Object {
+  const {scheme, path, fragment} = uri.parse(refPath);
+  let rootObject: Object = null;
+  switch (scheme) {
+    case 'file': 
+      rootObject = JSON.parse(fs.readFileSync(path).toString()); 
+      break;
+    default: 
+      rootObject = root.getSchemaObject(); 
+      break;
+  }
+  const segments = fragment.split('/').slice(1);
+  
+  function resolveInternal(partialSchema: Object, refSegments: Array<string>): Object {
+    if (isEmpty(refSegments)) {
+      return partialSchema;
+    }
+    const [key, ...tail] = refSegments;
+    const subSchema = partialSchema[key];
+    return resolveInternal(subSchema, tail);
+  }
+  return resolveInternal(rootObject, segments);
+});
+
+function wrap(root: SchemaRoot, schema: any, parent: BaseSchema) {
+  if (!schema) {
+    console.warn(`${schema} schema found`);
+    return new AnySchema({}, parent, root);
+  }
+
+  if (schema.$ref) {
+    schema = resolveRef(root, schema.$ref);
+  }
+
+  if (isArray(schema.type)) {
+    const childSchemas = schema.type.map((type: string) => assign(clone(schema), { type }));
+    schema = {
+      oneOf: childSchemas
+    }
+  }
+
+  if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
+    if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
+      return new ObjectSchema(schema, parent, root);
+    }
+    else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
+      return new ArraySchema(schema, parent, root);
+    }
+  }
+
+  if (isArray(schema.oneOf)) {
+    return new OneOfSchema(schema, parent, root);
+  } else if (isArray(schema.anyOf)) {
+    return new AnyOfSchema(schema, parent, root);
+  } else if (isArray(schema.allOf)) {
+    return new AllOfSchema(schema, parent, root);
+  } else if (isObject(schema.enum)) {
+    return new EnumSchema(schema, parent, root);
+  }
+
+  switch (schema.type) {
+    case 'boolean': return new BooleanSchema(schema, parent, root);
+    case 'number': return new NumberSchema(schema, parent, root);
+    case 'integer': return new NumberSchema(schema, parent, root);
+    case 'string': return new StringSchema(schema, parent, root);
+    case 'null': return new NullSchema(schema, parent, root);
+  }
+  console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
+  return new AnySchema({}, parent, root);
+}
+
 export class SchemaRoot {
   private schemaRoot: Object;
-  private resolveRef: (path: string) => Object;
   private schema: BaseSchema;
 
   getSchema(): BaseSchema {
     return this.schema;
   }
+  
+  getSchemaObject() {
+    return this.schemaRoot;
+  }
 
   constructor(schemaRoot: Object) {
     this.schemaRoot = schemaRoot;
-    this.resolveRef = <any>memoize((path: string) => {
-      const segments = path.split('/');
-      function resolveInternal(partialSchema: Object, refSegments: Array<string>): Object {
-        if (isEmpty(refSegments)) {
-          return partialSchema;
-        }
-        const [key, ...tail] = refSegments;
-        if (key === '#') {
-          return resolveInternal(partialSchema, tail);
-        }
-        const subSchema = partialSchema[key];
-        return resolveInternal(subSchema, tail);
-      }
-      return resolveInternal(this.schemaRoot, segments);
-    });
-    this.schema = this.wrap(schemaRoot, null);
+    this.schema = wrap(this, schemaRoot, null);
   }
 
-  wrap(schema: any, parent: BaseSchema): BaseSchema {
-    if (!schema) {
-      console.warn(`${schema} schema found`);
-      return new AnySchema({}, parent, this);
+  getExpandedSchemas(schema: BaseSchema) {
+    if (schema instanceof CompositeSchema) {
+      const schemas: Array<BaseSchema> = [];
+      schema.accept(new SchemaFlattenerVisitor(), schemas);
+      return schemas;
     }
-
-    if (schema.$ref) {
-      schema = this.resolveRef(schema.$ref);
-    }
-
-    if (isArray(schema.type)) {
-      const childSchemas = schema.type.map((type: string) => assign(clone(schema), { type }));
-      schema = {
-        oneOf: childSchemas
-      }
-    }
-
-    if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
-      if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
-        return new ObjectSchema(schema, parent, this);
-      }
-      else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
-        return new ArraySchema(schema, parent, this);
-      }
-    }
-
-    if (isArray(schema.oneOf)) {
-      return new OneOfSchema(schema, parent, this);
-    } else if (isArray(schema.anyOf)) {
-      return new AnyOfSchema(schema, parent, this);
-    } else if (isArray(schema.allOf)) {
-      return new AllOfSchema(schema, parent, this);
-    } else if (isObject(schema.enum)) {
-      return new EnumSchema(schema, parent, this);
-    }
-
-    switch (schema.type) {
-      case 'boolean': return new BooleanSchema(schema, parent, this);
-      case 'number': return new NumberSchema(schema, parent, this);
-      case 'integer': return new NumberSchema(schema, parent, this);
-      case 'string': return new StringSchema(schema, parent, this);
-      case 'null': return new NullSchema(schema, parent, this);
-    }
-    console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
-    return new AnySchema({}, parent, this);
+    return [schema];
   }
-
+  
   getPossibleTypes(segments: Array<number | string>) {
     if (segments.length === 0) {
       return this.getExpandedSchemas(this.getSchema());
@@ -93,15 +116,6 @@ export class SchemaRoot {
       const nextSchemas = flatten(resolvedNextSchemas).map(schema => schema.accept(visitor, segment));
       return flatten(nextSchemas);
     }, [this.getSchema()]);
-  }
-
-  getExpandedSchemas(schema: BaseSchema) {
-    if (schema instanceof CompositeSchema) {
-      const schemas: Array<BaseSchema> = [];
-      schema.accept(new SchemaFlattenerVisitor(), schemas);
-      return schemas;
-    }
-    return [schema];
   }
 }
 
@@ -148,12 +162,12 @@ export class ObjectSchema extends BaseSchema {
     const patternProperties = this.schema.patternProperties || {};
     this.keys = Object.keys(properties);
     this.properties = this.keys.reduce((object, key) => {
-      object[key] = this.getSchemaRoot().wrap(properties[key], this)
+      object[key] = wrap(this.getSchemaRoot(), properties[key], this)
       return object;
     }, <Dictionary<BaseSchema>>{});
     this.patternProperties = Object.keys(patternProperties)
       .map(key => [key, patternProperties[key]])
-      .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), this.getSchemaRoot().wrap(rawSchema, this)));
+      .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), wrap(this.getSchemaRoot(), rawSchema, this)));
   }
   getKeys() {
     return this.keys;
@@ -189,7 +203,7 @@ export class ArraySchema extends BaseSchema {
 
   constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot) {
     super(schema, parent, schemaRoot);
-    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items, this)
+    this.itemSchema = wrap(this.getSchemaRoot(), this.schema.items, this)
   }
 
   getItemSchema() {
@@ -238,7 +252,7 @@ export abstract class CompositeSchema extends BaseSchema {
   private schemas: Array<BaseSchema>;
   constructor(schema: Object, parent: BaseSchema, schemaRoot: SchemaRoot, keyWord: string) {
     super(schema, parent, schemaRoot);
-    this.schemas = schema[keyWord].map((schema: any) => this.getSchemaRoot().wrap(schema, this));
+    this.schemas = schema[keyWord].map((schema: any) => wrap(this.getSchemaRoot(), schema, this));
   }
 
   getSchemas() {
