@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/bali182/autocomplete-json#readme",
   "dependencies": {
+    "file-url": "^1.1.0",
     "jaro-winkler": "^0.2.6",
     "lodash": "^3.10.1",
     "minimatch": "^3.0.0",
@@ -31,6 +32,7 @@
     "packagist-package-lookup": "^0.2.0",
     "query-string": "^3.0.0",
     "tokenizer2": "^1.2.0",
+    "uri-js": "^2.1.1",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
