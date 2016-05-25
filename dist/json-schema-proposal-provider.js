@@ -6,43 +6,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var json_schema_1 = require('./json-schema');
 var json_schema_proposal_factory_1 = require('./json-schema-proposal-factory');
-var fs = require('fs');
-var fetch = require('node-fetch');
-var uriValidator = require('valid-url');
-function isLocalFile(uri) {
-    try {
-        fs.accessSync(uri, fs.F_OK);
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-function resolveLocalFile(uri) {
-    return new Promise(function (resolve, reject) {
-        fs.readFile(uri, 'UTF-8', function (error, data) {
-            if (error) {
-                reject(error);
-            } else {
-                try {
-                    resolve(JSON.parse(data));
-                } catch (e) {
-                    reject(e);
-                }
-            }
-        });
-    });
-}
-function resolveSchemaObject(uri) {
-    if (isLocalFile(uri)) {
-        return resolveLocalFile(uri);
-    } else if (uriValidator.isWebUri(uri)) {
-        return fetch(uri).then(function (data) {
-            return data.json();
-        });
-    }
-    console.warn('Invalid schema location: ' + uri);
-    return Promise.resolve({});
-}
+var json_schema_loader_1 = require('./json-schema-loader');
 
 var JsonSchemaProposalProvider = function () {
     function JsonSchemaProposalProvider(schemaProvider) {
@@ -53,7 +17,7 @@ var JsonSchemaProposalProvider = function () {
         this.schemaProvider = schemaProvider;
         this.proposalFactory = new json_schema_proposal_factory_1.JsonSchemaProposalFactory();
         this.schemaRoot = null;
-        resolveSchemaObject(schemaProvider.getSchemaURI()).then(function (schemaObject) {
+        json_schema_loader_1.loadSchema(schemaProvider.getSchemaURI()).then(function (schemaObject) {
             _this.schemaRoot = new json_schema_1.SchemaRoot(schemaObject);
             return schemaObject;
         });
