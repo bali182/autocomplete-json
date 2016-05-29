@@ -27,7 +27,7 @@ export interface IProposal {
 }
 
 export interface IFilePatternProvider {
-  getFilePattern(): string;
+  getFilePattern(): string | string[];
 }
 
 export interface IProposalProvider extends IFilePatternProvider {

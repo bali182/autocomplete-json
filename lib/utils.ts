@@ -1,5 +1,7 @@
 import {IToken} from './tokenizer';
-import {isObject} from 'lodash';
+import {isObject, isArray} from 'lodash';
+import * as minimatch from 'minimatch';
+const fetch = require('node-fetch');
 
 export class ArrayTraverser<T> {
 
@@ -138,4 +140,10 @@ export function resolveObject(segments: Array<string | number>, object: Object):
   }
   const [key, ...restOfSegments] = segments;
   return resolveObject(restOfSegments, object[key]);
+}
+
+export function matches(fileName: string, patterns: string| string[]): boolean {
+  return isArray(patterns)
+    ? patterns.some(pattern => minimatch(fileName, pattern))
+    : minimatch(fileName, patterns as string);
 }
