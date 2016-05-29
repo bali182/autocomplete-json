@@ -13,46 +13,53 @@ interface ISchemaInfo {
 }
 
 export default class SchemaStoreProvider implements IProposalProvider {
-   private schemaInfos: Array<ISchemaInfo>
-   private compoundProvier = new CompoundProposalProvider();
-   private blackList: { [email: string]: boolean } = {};
+  private schemaInfos: Array<ISchemaInfo>
+  private compoundProvier = new CompoundProposalProvider();
+  private blackList: { [email: string]: boolean } = {};
 
-   constructor() {
-     fetch('http://schemastore.org/api/json/catalog.json')
+  getSchemaInfos(): Promise<ISchemaInfo[]> {
+    if(this.schemaInfos) {
+      return Promise.resolve(this.schemaInfos);
+    }
+    return fetch('http://schemastore.org/api/json/catalog.json')
       .then((response: any) => response.json())
       .then((data: any) => data.schemas.filter((schema: ISchemaInfo) => !!schema.fileMatch))
-      .then((schemaInfos: Array<ISchemaInfo>) => this.schemaInfos = schemaInfos)
-      .catch((error: any) => console.error(error));
-   }
+      .then((schemaInfos: Array<ISchemaInfo>) => {
+        this.schemaInfos = schemaInfos
+        return schemaInfos;
+      });
+  }
 
   getProposals(request: IRequest): Promise<Array<IProposal>> {
     const fileName: string = request.editor.buffer.file.getBaseName();
-    if (!this.schemaInfos || this.blackList[fileName]) {
+    if (this.blackList[fileName]) {
       console.warn('schemas not available');
       return Promise.resolve([]);
     }
 
     if(!this.compoundProvier.hasProposals(fileName)) {
-      const matchingSchemas = this.schemaInfos.filter(({fileMatch}) => {
-        return fileMatch.some(match => minimatch(fileName, match));
-      });
-      const providersPromises = matchingSchemas.map(schemaInfo => {
-        const schemaPromise: Promise<Object> = fetch(schemaInfo.url).then((result: any) => result.json());
-        return schemaPromise.then(schema => {
-          return new JsonSchemaProposalProvider(
-            schemaInfo.fileMatch,
-            new SchemaRoot(schema)
-          )
-        })
-      });
-      return Promise.all(providersPromises)
+      return this.getSchemaInfos()
+        .then(schemaInfos => schemaInfos.filter(({fileMatch}) => fileMatch.some(match => minimatch(fileName, match))))
+        .then(matching => Promise.all(
+          matching.map(schemaInfo => fetch(schemaInfo.url)
+            .then((result: any) => result.json()
+            .then((schema: Object) => new JsonSchemaProposalProvider(
+              schemaInfo.fileMatch,
+              new SchemaRoot(schema)
+            ))
+          ) as Promise<IProposalProvider>)))
         .then(providers => this.compoundProvier.addProviders(providers))
-        .then(_ => this.compoundProvier.getProposals(request));
+        .then(_ => {
+          if(!this.compoundProvier.hasProposals(fileName)) {
+            this.blackList[fileName] = true;
+          }
+        })
+        .then(_ => this.compoundProvier.getProposals(request))
     }
     return this.compoundProvier.getProposals(request);
   }
 
-   getFilePattern(): string {
-     return '*';
-   }
+  getFilePattern(): string {
+    return '*';
+  }
 }

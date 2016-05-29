@@ -12,53 +12,63 @@ var fetch = require('node-fetch');
 
 var SchemaStoreProvider = function () {
     function SchemaStoreProvider() {
-        var _this = this;
-
         _classCallCheck(this, SchemaStoreProvider);
 
         this.compoundProvier = new compound_provider_1.CompoundProposalProvider();
         this.blackList = {};
-        fetch('http://schemastore.org/api/json/catalog.json').then(function (response) {
-            return response.json();
-        }).then(function (data) {
-            return data.schemas.filter(function (schema) {
-                return !!schema.fileMatch;
-            });
-        }).then(function (schemaInfos) {
-            return _this.schemaInfos = schemaInfos;
-        }).catch(function (error) {
-            return console.error(error);
-        });
     }
 
     _createClass(SchemaStoreProvider, [{
+        key: 'getSchemaInfos',
+        value: function getSchemaInfos() {
+            var _this = this;
+
+            if (this.schemaInfos) {
+                return Promise.resolve(this.schemaInfos);
+            }
+            return fetch('http://schemastore.org/api/json/catalog.json').then(function (response) {
+                return response.json();
+            }).then(function (data) {
+                return data.schemas.filter(function (schema) {
+                    return !!schema.fileMatch;
+                });
+            }).then(function (schemaInfos) {
+                _this.schemaInfos = schemaInfos;
+                return schemaInfos;
+            });
+        }
+    }, {
         key: 'getProposals',
         value: function getProposals(request) {
             var _this2 = this;
 
             var fileName = request.editor.buffer.file.getBaseName();
-            if (!this.schemaInfos || this.blackList[fileName]) {
+            if (this.blackList[fileName]) {
                 console.warn('schemas not available');
                 return Promise.resolve([]);
             }
             if (!this.compoundProvier.hasProposals(fileName)) {
-                var matchingSchemas = this.schemaInfos.filter(function (_ref) {
-                    var fileMatch = _ref.fileMatch;
-
-                    return fileMatch.some(function (match) {
-                        return minimatch(fileName, match);
+                return this.getSchemaInfos().then(function (schemaInfos) {
+                    return schemaInfos.filter(function (_ref) {
+                        var fileMatch = _ref.fileMatch;
+                        return fileMatch.some(function (match) {
+                            return minimatch(fileName, match);
+                        });
                     });
-                });
-                var providersPromises = matchingSchemas.map(function (schemaInfo) {
-                    var schemaPromise = fetch(schemaInfo.url).then(function (result) {
-                        return result.json();
-                    });
-                    return schemaPromise.then(function (schema) {
-                        return new json_schema_proposal_provider_1.JsonSchemaProposalProvider(schemaInfo.fileMatch, new json_schema_1.SchemaRoot(schema));
-                    });
-                });
-                return Promise.all(providersPromises).then(function (providers) {
+                }).then(function (matching) {
+                    return Promise.all(matching.map(function (schemaInfo) {
+                        return fetch(schemaInfo.url).then(function (result) {
+                            return result.json().then(function (schema) {
+                                return new json_schema_proposal_provider_1.JsonSchemaProposalProvider(schemaInfo.fileMatch, new json_schema_1.SchemaRoot(schema));
+                            });
+                        });
+                    }));
+                }).then(function (providers) {
                     return _this2.compoundProvier.addProviders(providers);
+                }).then(function (_) {
+                    if (!_this2.compoundProvier.hasProposals(fileName)) {
+                        _this2.blackList[fileName] = true;
+                    }
                 }).then(function (_) {
                     return _this2.compoundProvier.getProposals(request);
                 });
