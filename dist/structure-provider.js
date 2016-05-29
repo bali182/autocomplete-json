@@ -74,24 +74,24 @@ function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
         return;
     }
     if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.current(), tokens.peekNext())) {
-        var info = posInfo.setKeyPosition().setPreviousToken(tokens.current()).setNextToken(tokens.peekNext()).toObject();
-        posInfoHolder.set(info);
+        var _info = posInfo.setKeyPosition().setPreviousToken(tokens.current()).setNextToken(tokens.peekNext()).toObject();
+        posInfoHolder.set(_info);
     }
     var keyToken = tokens.next();
     if (keyToken.type !== tokenizer_1.TokenType.STRING && keyToken.type !== tokenizer_1.TokenType.SYMBOL) {
         return;
     }
     if (!posInfoHolder.hasValue() && intersectsWithToken(position, keyToken)) {
-        var info = posInfo.setKeyPosition().setPreviousToken(tokens.peekPrevious()).setEditedToken(keyToken).setNextToken(tokens.peekNext()).toObject();
-        posInfoHolder.set(info);
+        var _info2 = posInfo.setKeyPosition().setPreviousToken(tokens.peekPrevious()).setEditedToken(keyToken).setNextToken(tokens.peekNext()).toObject();
+        posInfoHolder.set(_info2);
     }
     var key = _.trim(keyToken.src, '"');
     var separatorToken = tokens.next();
     if (separatorToken.type === tokenizer_1.TokenType.END_LABEL) {
         var pathWithKey = posInfo.add(key);
         if (!posInfoHolder.hasValue() && isBetweenTokenType(position, separatorToken, tokens.peekNext())) {
-            var info = pathWithKey.setValuePosition().setPreviousToken(separatorToken).setNextToken(tokens.peekNext()).toObject();
-            posInfoHolder.set(info);
+            var _info3 = pathWithKey.setValuePosition().setPreviousToken(separatorToken).setNextToken(tokens.peekNext()).toObject();
+            posInfoHolder.set(_info3);
         }
         var valContainer = [];
         consumeValue(tokens, valContainer, position, pathWithKey, posInfoHolder);
@@ -141,12 +141,12 @@ function consumeArray(array, tokens, position, posInfo, posInfoHolder) {
         array.push(value);
         index++;
         if (tokens.hasNext()) {
-            var token = tokens.next();
-            if (!posInfoHolder.hasValue() && isBetweenTokenType(position, token, tokens.peekNext())) {
-                var info = posInfo.add(index).setValuePosition().setPreviousToken(token).setNextToken(tokens.peekNext()).toObject();
-                posInfoHolder.set(info);
+            var _token = tokens.next();
+            if (!posInfoHolder.hasValue() && isBetweenTokenType(position, _token, tokens.peekNext())) {
+                var _info4 = posInfo.add(index).setValuePosition().setPreviousToken(_token).setNextToken(tokens.peekNext()).toObject();
+                posInfoHolder.set(_info4);
             }
-            switch (token.type) {
+            switch (_token.type) {
                 case tokenizer_1.TokenType.END_ARRAY:
                     return;
                 case tokenizer_1.TokenType.COMMA:

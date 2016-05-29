@@ -2,12 +2,12 @@
 **Semantic autocompletion for JSON files**
 
 ##how this works
-Since 2.0 was released, this is the way this package works:
+Since 5.0 (it supposed to be 2.0 but I messed up `apm publish`) was released, this is the way this package works:
 1. Load the available schema "manifest" from [schemastore.org](http://schemastore.org/api/json/catalog.json)
 2. Once a `.json` file is opened, and autocompletion is activated (CTRL+Space usually), the file name is matched against the `fileMatch` field in each schema descriptor, and if there's a match, that schema is loaded and used for autocompletion in the given file.
 3. There are also some extra features, like autocompletion for files and dependencies. These are available for the most frequently used schemas, like `package.json` and `tsconfig.json`.
 
-**The 2.0 release will most likely cause a lots of issues and bugs, please [report](https://github.com/bali182/autocomplete-json/issues) if you find any!**
+**The 5.0 release will most likely cause a lots of issues and bugs, please [report](https://github.com/bali182/autocomplete-json/issues) if you find any!**
 
 ##features
 

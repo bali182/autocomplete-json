@@ -10,7 +10,7 @@ var _require = require('atom');
 var CompositeDisposable = _require.CompositeDisposable;
 var Disposable = _require.Disposable;
 
-var PROVIDERS = undefined;
+var PROVIDERS = void 0;
 function activate() {
     PROVIDERS = [];
 }

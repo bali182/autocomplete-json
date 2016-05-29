@@ -47,8 +47,9 @@ export default class SchemaStoreProvider implements IProposalProvider {
               schemaInfo.fileMatch,
               new SchemaRoot(schema)
             ))
-          ) as Promise<IProposalProvider>)))
-        .then(providers => this.compoundProvier.addProviders(providers))
+          ) as Promise<IProposalProvider>)) as any // wont compile otherwise for some reason
+        )
+        .then((providers: IProposalProvider[]) => this.compoundProvier.addProviders(providers))
         .then(_ => {
           if(!this.compoundProvier.hasProposals(fileName)) {
             this.blackList[fileName] = true;

@@ -74,7 +74,7 @@ var JsonPathMatcher = function () {
         value: function index() {
             var value = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
 
-            var matcher = undefined;
+            var matcher = void 0;
             if (value === undefined) {
                 matcher = AnyIndexMatcher;
             } else {
@@ -89,7 +89,7 @@ var JsonPathMatcher = function () {
         value: function key() {
             var value = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
 
-            var matcher = undefined;
+            var matcher = void 0;
             if (value === undefined) {
                 matcher = AnyKeyMatcher;
             } else {
