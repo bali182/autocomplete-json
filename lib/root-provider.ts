@@ -1,8 +1,7 @@
-import * as minimatch from 'minimatch';
 import {includes, trimLeft} from 'lodash';
 import {tokenize, TokenType} from './tokenizer';
 import {provideStructure, IStructureInfo} from './structure-provider';
-import {PositionInfo} from './utils';
+import {PositionInfo, matches} from './utils';
 import {IProposalProvider, IRequest, IProposal} from './provider-api'
 
 export default class RootProvider {
@@ -36,7 +35,7 @@ export default class RootProvider {
   }
 
   checkRequest(request: any) {
-    const {editor, bufferPosition} = request; 
+    const {editor, bufferPosition} = request;
     return !!(editor
       && editor.buffer
       && editor.buffer.file
@@ -85,7 +84,7 @@ export default class RootProvider {
   }
 
   getMatchingProviders(file: string) {
-    return this.providers.filter(p => minimatch(file, p.getFilePattern()))
+    return this.providers.filter(p => matches(file, p.getFilePattern()))
   }
 
   onDidInsertSuggestion(request: IRequest) {

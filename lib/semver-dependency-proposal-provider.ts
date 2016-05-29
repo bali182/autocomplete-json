@@ -79,7 +79,7 @@ export class SemverDependencyProposalProvider implements IProposalProvider {
     );
   }
 
-  getFilePattern(): string {
+  getFilePattern(): string | string[] {
     return this.config.getFilePattern();
   }
 }

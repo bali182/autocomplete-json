@@ -27,27 +27,45 @@ function provideProposalProviders() {
     return providers_1.defaultProviders;
 }
 exports.provideProposalProviders = provideProposalProviders;
-function createDisposable(providers) {
-    return providers.reduce(function (disposable, provider) {
-        disposable.add(new Disposable(function (provider) {
-            lodash_1.remove(PROVIDERS, function (e) {
+function createPromiseDisposable(promise) {
+    return new Disposable(function () {
+        promise.then(function (provider) {
+            return lodash_1.remove(PROVIDERS, function (e) {
                 return e === provider;
             });
-        }));
-        return disposable;
-    }, new CompositeDisposable());
+        });
+    });
+}
+function createSyncDisposable(provider) {
+    return new Disposable(function () {
+        lodash_1.remove(PROVIDERS, function (e) {
+            return e === provider;
+        });
+    });
+}
+function createCompositeDisposable(providers) {
+    var composite = new CompositeDisposable();
+    providers.forEach(function (disposable) {
+        return composite.add(disposable);
+    });
+    return composite;
 }
 function consumeJsonSchemaProviders(provider) {
     var schemaProviders = lodash_1.isArray(provider) ? provider : [provider];
-    var providers = schemaProviders.filter(function (s) {
+    var providerPromises = schemaProviders.filter(function (s) {
         return !!s;
     }).map(function (s) {
-        return new json_schema_proposal_provider_1.JsonSchemaProposalProvider(s);
+        return json_schema_proposal_provider_1.JsonSchemaProposalProvider.createFromProvider(s);
     });
-    providers.forEach(function (p) {
-        return PROVIDERS.push(p);
+    providerPromises.forEach(function (promise) {
+        return promise.then(function (p) {
+            return PROVIDERS.push(p);
+        });
     });
-    return createDisposable(providers);
+    var disposables = providerPromises.map(function (promise) {
+        return createPromiseDisposable(promise);
+    });
+    return createCompositeDisposable(disposables);
 }
 exports.consumeJsonSchemaProviders = consumeJsonSchemaProviders;
 function consumeJsonProposalProviders(provider) {
@@ -57,7 +75,9 @@ function consumeJsonProposalProviders(provider) {
     providers.forEach(function (p) {
         return PROVIDERS.push(p);
     });
-    return createDisposable(providers);
+    return createCompositeDisposable(providers.map(function (provider) {
+        return createSyncDisposable(provider);
+    }));
 }
 exports.consumeJsonProposalProviders = consumeJsonProposalProviders;
 function dispose() {
