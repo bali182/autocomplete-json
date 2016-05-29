@@ -4,10 +4,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var minimatch = require('minimatch');
 var lodash_1 = require('lodash');
 var tokenizer_1 = require('./tokenizer');
 var structure_provider_1 = require('./structure-provider');
+var utils_1 = require('./utils');
 
 var RootProvider = function () {
     function RootProvider() {
@@ -101,7 +101,7 @@ var RootProvider = function () {
         key: 'getMatchingProviders',
         value: function getMatchingProviders(file) {
             return this.providers.filter(function (p) {
-                return minimatch(file, p.getFilePattern());
+                return utils_1.matches(file, p.getFilePattern());
             });
         }
     }, {

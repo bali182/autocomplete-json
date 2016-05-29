@@ -9,32 +9,30 @@ var json_schema_proposal_factory_1 = require('./json-schema-proposal-factory');
 var json_schema_loader_1 = require('./json-schema-loader');
 
 var JsonSchemaProposalProvider = function () {
-    function JsonSchemaProposalProvider(schemaProvider) {
-        var _this = this;
-
+    function JsonSchemaProposalProvider(filePattern, schemaRoot) {
         _classCallCheck(this, JsonSchemaProposalProvider);
 
-        this.schemaProvider = schemaProvider;
+        this.filePattern = filePattern;
+        this.schemaRoot = schemaRoot;
         this.proposalFactory = new json_schema_proposal_factory_1.JsonSchemaProposalFactory();
-        this.schemaRoot = null;
-        json_schema_loader_1.loadSchema(schemaProvider.getSchemaURI()).then(function (schemaObject) {
-            _this.schemaRoot = new json_schema_1.SchemaRoot(schemaObject);
-            return schemaObject;
-        });
     }
 
     _createClass(JsonSchemaProposalProvider, [{
         key: 'getProposals',
         value: function getProposals(request) {
-            if (this.schemaRoot === null) {
-                return Promise.resolve([]);
-            }
             return Promise.resolve(this.proposalFactory.createProposals(request, this.schemaRoot));
         }
     }, {
         key: 'getFilePattern',
         value: function getFilePattern() {
-            return this.schemaProvider.getFilePattern();
+            return this.filePattern;
+        }
+    }], [{
+        key: 'createFromProvider',
+        value: function createFromProvider(schemaProvider) {
+            return json_schema_loader_1.loadSchema(schemaProvider.getSchemaURI()).then(function (schema) {
+                return new JsonSchemaProposalProvider(schemaProvider.getFilePattern(), new json_schema_1.SchemaRoot(schema));
+            });
         }
     }]);
 

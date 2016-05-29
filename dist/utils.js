@@ -7,6 +7,8 @@ function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var lodash_1 = require('lodash');
+var minimatch = require('minimatch');
+var fetch = require('node-fetch');
 
 var ArrayTraverser = function () {
     function ArrayTraverser() {
@@ -203,3 +205,9 @@ function resolveObject(segments, object) {
     return resolveObject(restOfSegments, object[key]);
 }
 exports.resolveObject = resolveObject;
+function matches(fileName, patterns) {
+    return lodash_1.isArray(patterns) ? patterns.some(function (pattern) {
+        return minimatch(fileName, pattern);
+    }) : minimatch(fileName, patterns);
+}
+exports.matches = matches;
