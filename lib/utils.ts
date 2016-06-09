@@ -142,8 +142,11 @@ export function resolveObject(segments: Array<string | number>, object: Object):
   return resolveObject(restOfSegments, object[key]);
 }
 
-export function matches(fileName: string, patterns: string| string[]): boolean {
-  return isArray(patterns)
-    ? patterns.some(pattern => minimatch(fileName, pattern))
-    : minimatch(fileName, patterns as string);
+export function matches(file: any, patterns: string| string[]): boolean {
+  if (isArray(patterns)) {
+    return patterns.some(pattern => minimatch((pattern.indexOf("/") > -1)?file.getRealPathSync():file.getBaseName(), (process.platform == 'win32')?pattern.replace(/\//g, '\\'):pattern))
+  } else {
+    let pattern = patterns as string;
+    return minimatch((pattern.indexOf("/") > -1)?file.getRealPathSync():file.getBaseName(), (process.platform == 'win32')?pattern.replace(/\//g, '\\'):pattern);
+  }
 }
