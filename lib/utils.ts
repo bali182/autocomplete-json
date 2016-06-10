@@ -142,11 +142,10 @@ export function resolveObject(segments: Array<string | number>, object: Object):
   return resolveObject(restOfSegments, object[key]);
 }
 
+function doMatches(pattern: string, file: any) {
+  return minimatch((pattern.indexOf("/") > -1)?file.getRealPathSync():file.getBaseName(), (process.platform == 'win32')?pattern.replace(/\//g, '\\'):pattern);
+}
+
 export function matches(file: any, patterns: string| string[]): boolean {
-  if (isArray(patterns)) {
-    return patterns.some(pattern => minimatch((pattern.indexOf("/") > -1)?file.getRealPathSync():file.getBaseName(), (process.platform == 'win32')?pattern.replace(/\//g, '\\'):pattern))
-  } else {
-    let pattern = patterns as string;
-    return minimatch((pattern.indexOf("/") > -1)?file.getRealPathSync():file.getBaseName(), (process.platform == 'win32')?pattern.replace(/\//g, '\\'):pattern);
-  }
+  return isArray(patterns)?patterns.some(pattern => doMatches(pattern, file)):doMatches(patterns as string, file);
 }

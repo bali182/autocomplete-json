@@ -31,15 +31,15 @@ export default class SchemaStoreProvider implements IProposalProvider {
   }
 
   getProposals(request: IRequest): Promise<Array<IProposal>> {
-    const fileName: string = request.editor.buffer.file.getBaseName();
-    if (this.blackList[fileName]) {
+    const file = request.editor.buffer.file;
+    if (this.blackList[file.getBaseName()]) {
       console.warn('schemas not available');
       return Promise.resolve([]);
     }
 
-    if(!this.compoundProvier.hasProposals(fileName)) {
+    if(!this.compoundProvier.hasProposals(file)) {
       return this.getSchemaInfos()
-        .then(schemaInfos => schemaInfos.filter(({fileMatch}) => fileMatch.some(match => minimatch(fileName, match))))
+        .then(schemaInfos => schemaInfos.filter(({fileMatch}) => fileMatch.some(match => minimatch(file.getBaseName(), match))))
         .then(matching => Promise.all(
           matching.map(schemaInfo => fetch(schemaInfo.url)
             .then((result: any) => result.json()
@@ -51,8 +51,8 @@ export default class SchemaStoreProvider implements IProposalProvider {
         )
         .then((providers: IProposalProvider[]) => this.compoundProvier.addProviders(providers))
         .then(_ => {
-          if(!this.compoundProvier.hasProposals(fileName)) {
-            this.blackList[fileName] = true;
+          if(!this.compoundProvier.hasProposals(file)) {
+            this.blackList[file.getBaseName()] = true;
           }
         })
         .then(_ => this.compoundProvier.getProposals(request))

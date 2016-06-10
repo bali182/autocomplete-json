@@ -205,14 +205,12 @@ function resolveObject(segments, object) {
     return resolveObject(restOfSegments, object[key]);
 }
 exports.resolveObject = resolveObject;
+function doMatches(pattern, file) {
+    return minimatch(pattern.indexOf("/") > -1 ? file.getRealPathSync() : file.getBaseName(), process.platform == 'win32' ? pattern.replace(/\//g, '\\') : pattern);
+}
 function matches(file, patterns) {
-    if (lodash_1.isArray(patterns)) {
-        return patterns.some(function (pattern) {
-            return minimatch(pattern.indexOf("/") > -1 ? file.getRealPathSync() : file.getBaseName(), process.platform == 'win32' ? pattern.replace(/\//g, '\\') : pattern);
-        });
-    } else {
-        var pattern = patterns;
-        return minimatch(pattern.indexOf("/") > -1 ? file.getRealPathSync() : file.getBaseName(), process.platform == 'win32' ? pattern.replace(/\//g, '\\') : pattern);
-    }
+    return lodash_1.isArray(patterns) ? patterns.some(function (pattern) {
+        return doMatches(pattern, file);
+    }) : doMatches(patterns, file);
 }
 exports.matches = matches;
