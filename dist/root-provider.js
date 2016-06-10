@@ -36,7 +36,7 @@ var RootProvider = function () {
             if (editor.lineTextForBufferRow(bufferPosition.row).charAt(bufferPosition.column - 1) === ',' && !activatedManually) {
                 return Promise.resolve([]);
             }
-            var providers = this.getMatchingProviders(editor.buffer.file.getBaseName());
+            var providers = this.getMatchingProviders(editor.buffer.file);
             if (providers.length === 0) {
                 return Promise.resolve([]);
             }

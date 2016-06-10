@@ -14,15 +14,15 @@ export class CompoundProposalProvider implements IProposalProvider {
     this.providers = this.providers.concat(providers);
   }
 
-  hasProposals(fileName: string) {
-    return this.providers.some(provider => matches(fileName, provider.getFilePattern()));
+  hasProposals(file: any) {
+    return this.providers.some(provider => matches(file, provider.getFilePattern()));
   }
 
   getProposals(request: IRequest): Promise<Array<IProposal>> {
-    const fileName = request.editor.buffer.file.getBaseName();
+    const file = request.editor.buffer.file;
     return Promise.all(
       this.providers
-        .filter(provider => matches(fileName, provider.getFilePattern()))
+        .filter(provider => matches(file, provider.getFilePattern()))
         .map(provider => provider.getProposals(request))
     ).then(results => flatten(results));
   }

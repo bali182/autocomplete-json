@@ -21,7 +21,7 @@ export default class RootProvider {
       return Promise.resolve([]); // hack, to prevent activation right after inserting a comma
     }
 
-    const providers = this.getMatchingProviders(editor.buffer.file.getBaseName());
+    const providers = this.getMatchingProviders(editor.buffer.file);
     if (providers.length === 0) {
       return Promise.resolve([]); // no provider no proposals
     }
@@ -83,7 +83,7 @@ export default class RootProvider {
     }
   }
 
-  getMatchingProviders(file: string) {
+  getMatchingProviders(file: any) {
     return this.providers.filter(p => matches(file, p.getFilePattern()))
   }
 

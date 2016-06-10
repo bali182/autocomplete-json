@@ -205,9 +205,12 @@ function resolveObject(segments, object) {
     return resolveObject(restOfSegments, object[key]);
 }
 exports.resolveObject = resolveObject;
-function matches(fileName, patterns) {
+function doMatches(pattern, file) {
+    return minimatch(pattern.indexOf("/") > -1 ? file.getRealPathSync() : file.getBaseName(), process.platform == 'win32' ? pattern.replace(/\//g, '\\') : pattern);
+}
+function matches(file, patterns) {
     return lodash_1.isArray(patterns) ? patterns.some(function (pattern) {
-        return minimatch(fileName, pattern);
-    }) : minimatch(fileName, patterns);
+        return doMatches(pattern, file);
+    }) : doMatches(patterns, file);
 }
 exports.matches = matches;

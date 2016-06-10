@@ -42,17 +42,17 @@ var SchemaStoreProvider = function () {
         value: function getProposals(request) {
             var _this2 = this;
 
-            var fileName = request.editor.buffer.file.getBaseName();
-            if (this.blackList[fileName]) {
+            var file = request.editor.buffer.file;
+            if (this.blackList[file.getBaseName()]) {
                 console.warn('schemas not available');
                 return Promise.resolve([]);
             }
-            if (!this.compoundProvier.hasProposals(fileName)) {
+            if (!this.compoundProvier.hasProposals(file)) {
                 return this.getSchemaInfos().then(function (schemaInfos) {
                     return schemaInfos.filter(function (_ref) {
                         var fileMatch = _ref.fileMatch;
                         return fileMatch.some(function (match) {
-                            return minimatch(fileName, match);
+                            return minimatch(file.getBaseName(), match);
                         });
                     });
                 }).then(function (matching) {
@@ -66,8 +66,8 @@ var SchemaStoreProvider = function () {
                 }).then(function (providers) {
                     return _this2.compoundProvier.addProviders(providers);
                 }).then(function (_) {
-                    if (!_this2.compoundProvier.hasProposals(fileName)) {
-                        _this2.blackList[fileName] = true;
+                    if (!_this2.compoundProvier.hasProposals(file)) {
+                        _this2.blackList[file.getBaseName()] = true;
                     }
                 }).then(function (_) {
                     return _this2.compoundProvier.getProposals(request);

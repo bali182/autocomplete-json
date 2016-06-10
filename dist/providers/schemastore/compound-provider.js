@@ -26,17 +26,17 @@ var CompoundProposalProvider = function () {
         }
     }, {
         key: 'hasProposals',
-        value: function hasProposals(fileName) {
+        value: function hasProposals(file) {
             return this.providers.some(function (provider) {
-                return utils_1.matches(fileName, provider.getFilePattern());
+                return utils_1.matches(file, provider.getFilePattern());
             });
         }
     }, {
         key: 'getProposals',
         value: function getProposals(request) {
-            var fileName = request.editor.buffer.file.getBaseName();
+            var file = request.editor.buffer.file;
             return Promise.all(this.providers.filter(function (provider) {
-                return utils_1.matches(fileName, provider.getFilePattern());
+                return utils_1.matches(file, provider.getFilePattern());
             }).map(function (provider) {
                 return provider.getProposals(request);
             })).then(function (results) {

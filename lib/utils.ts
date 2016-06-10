@@ -142,8 +142,10 @@ export function resolveObject(segments: Array<string | number>, object: Object):
   return resolveObject(restOfSegments, object[key]);
 }
 
-export function matches(fileName: string, patterns: string| string[]): boolean {
-  return isArray(patterns)
-    ? patterns.some(pattern => minimatch(fileName, pattern))
-    : minimatch(fileName, patterns as string);
+function doMatches(pattern: string, file: any) {
+  return minimatch((pattern.indexOf("/") > -1)?file.getRealPathSync():file.getBaseName(), (process.platform == 'win32')?pattern.replace(/\//g, '\\'):pattern);
+}
+
+export function matches(file: any, patterns: string| string[]): boolean {
+  return isArray(patterns)?patterns.some(pattern => doMatches(pattern, file)):doMatches(patterns as string, file);
 }
