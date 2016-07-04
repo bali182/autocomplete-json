@@ -8,7 +8,7 @@ var minimatch = require('minimatch');
 var json_schema_proposal_provider_1 = require('../../json-schema-proposal-provider');
 var json_schema_1 = require('../../json-schema');
 var compound_provider_1 = require('./compound-provider');
-var fetch = require('node-fetch');
+var utils_1 = require('./../../utils');
 
 var SchemaStoreProvider = function () {
     function SchemaStoreProvider() {
@@ -26,7 +26,7 @@ var SchemaStoreProvider = function () {
             if (this.schemaInfos) {
                 return Promise.resolve(this.schemaInfos);
             }
-            return fetch('http://schemastore.org/api/json/catalog.json').then(function (response) {
+            return utils_1.fetch('http://schemastore.org/api/json/catalog.json').then(function (response) {
                 return response.json();
             }).then(function (data) {
                 return data.schemas.filter(function (schema) {
@@ -57,7 +57,7 @@ var SchemaStoreProvider = function () {
                     });
                 }).then(function (matching) {
                     return Promise.all(matching.map(function (schemaInfo) {
-                        return fetch(schemaInfo.url).then(function (result) {
+                        return utils_1.fetch(schemaInfo.url).then(function (result) {
                             return result.json().then(function (schema) {
                                 return new json_schema_proposal_provider_1.JsonSchemaProposalProvider(schemaInfo.fileMatch, new json_schema_1.SchemaRoot(schema));
                             });
