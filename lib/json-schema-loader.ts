@@ -2,7 +2,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import {trimLeft} from 'lodash';
 const uriJs = require('uri-js');
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
+import {fetch} from  './utils';
 
 export interface IUri {
   scheme: string //"uri"
@@ -25,7 +26,7 @@ export const fileSchemaLoader = {
     }
     return path;
   },
-  
+
   load(uri: IUri): Promise<Object> {
     return new Promise<Object>((resolve, reject) => {
       fs.readFile(this.normalizePath(uri.path), 'UTF-8', /* TODO think about detecting this */ (error, data) => {

@@ -3,7 +3,8 @@ import {IProposalProvider, IRequest, IProposal} from '../../provider-api'
 import {JsonSchemaProposalProvider} from '../../json-schema-proposal-provider';
 import {SchemaRoot} from '../../json-schema';
 import {CompoundProposalProvider} from './compound-provider';
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
+import {fetch} from  './../../utils';
 
 interface ISchemaInfo {
   name?: string,

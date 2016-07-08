@@ -1,7 +1,8 @@
 import {IToken} from './tokenizer';
 import {isObject, isArray} from 'lodash';
 import * as minimatch from 'minimatch';
-const fetch = require('node-fetch');
+const nodeFetch = require('node-fetch');
+const ElectronProxyAgent = require('electron-proxy-agent');
 
 export class ArrayTraverser<T> {
 
@@ -148,4 +149,13 @@ function doMatches(pattern: string, file: any) {
 
 export function matches(file: any, patterns: string| string[]): boolean {
   return isArray(patterns)?patterns.some(pattern => doMatches(pattern, file)):doMatches(patterns as string, file);
+}
+
+// export function fetch(url: string, {agent = new ElectronProxyAgent(), ...options}) {
+//   return nodeFetch(url, {...options, agent});
+// }
+
+export function fetch(url: string, options = {} as any) {
+  const proxyAgent = options.agent || new ElectronProxyAgent();
+  return nodeFetch(url, Object.assign({agent: proxyAgent}, options));
 }

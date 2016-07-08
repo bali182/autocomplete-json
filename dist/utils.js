@@ -8,7 +8,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var lodash_1 = require('lodash');
 var minimatch = require('minimatch');
-var fetch = require('node-fetch');
+var nodeFetch = require('node-fetch');
+var ElectronProxyAgent = require('electron-proxy-agent');
 
 var ArrayTraverser = function () {
     function ArrayTraverser() {
@@ -214,3 +215,10 @@ function matches(file, patterns) {
     }) : doMatches(patterns, file);
 }
 exports.matches = matches;
+function fetch(url) {
+    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+    var proxyAgent = options.agent || new ElectronProxyAgent();
+    return nodeFetch(url, Object.assign({ agent: proxyAgent }, options));
+}
+exports.fetch = fetch;
