@@ -8,8 +8,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var lodash_1 = require('lodash');
 function createDependencyProposal(request, dependency) {
-    var isBetweenQuotes = request.isBetweenQuotes;
-    var shouldAddComma = request.shouldAddComma;
+    var isBetweenQuotes = request.isBetweenQuotes,
+        shouldAddComma = request.shouldAddComma;
 
     var proposal = {};
     proposal.displayText = dependency.name;
@@ -24,9 +24,9 @@ function createDependencyProposal(request, dependency) {
     return proposal;
 }
 function createVersionProposal(request, version) {
-    var isBetweenQuotes = request.isBetweenQuotes;
-    var shouldAddComma = request.shouldAddComma;
-    var prefix = request.prefix;
+    var isBetweenQuotes = request.isBetweenQuotes,
+        shouldAddComma = request.shouldAddComma,
+        prefix = request.prefix;
 
     var proposal = {};
     proposal.displayText = version;
@@ -51,9 +51,9 @@ var SemverDependencyProposalProvider = function () {
     _createClass(SemverDependencyProposalProvider, [{
         key: 'getProposals',
         value: function getProposals(request) {
-            var segments = request.segments;
-            var isKeyPosition = request.isKeyPosition;
-            var isValuePosition = request.isValuePosition;
+            var segments = request.segments,
+                isKeyPosition = request.isKeyPosition,
+                isValuePosition = request.isValuePosition;
 
             if (this.config.dependencyRequestMatcher().matches(request)) {
                 return this.getDependencyKeysProposals(request);
@@ -80,14 +80,12 @@ var SemverDependencyProposalProvider = function () {
     }, {
         key: 'getDependencyVersionsProposals',
         value: function getDependencyVersionsProposals(request) {
-            var segments = request.segments;
-            var prefix = request.prefix;
+            var segments = request.segments,
+                prefix = request.prefix;
 
-            var _segments = _toArray(segments);
-
-            var packageName = _segments[1];
-
-            var rest = _segments.slice(2);
+            var _segments = _toArray(segments),
+                packageName = _segments[1],
+                rest = _segments.slice(2);
 
             var trimmedPrefix = lodash_1.trimLeft(prefix, '~^<>="');
             return this.config.versions(packageName.toString()).then(function (versions) {

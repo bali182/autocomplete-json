@@ -8,7 +8,7 @@ var minimatch = require('minimatch');
 var json_schema_proposal_provider_1 = require('../../json-schema-proposal-provider');
 var json_schema_1 = require('../../json-schema');
 var compound_provider_1 = require('./compound-provider');
-var utils_1 = require('./../../utils');
+var axios_1 = require('axios');
 
 var SchemaStoreProvider = function () {
     function SchemaStoreProvider() {
@@ -26,8 +26,8 @@ var SchemaStoreProvider = function () {
             if (this.schemaInfos) {
                 return Promise.resolve(this.schemaInfos);
             }
-            return utils_1.fetch('http://schemastore.org/api/json/catalog.json').then(function (response) {
-                return response.json();
+            return axios_1.default.get('http://schemastore.org/api/json/catalog.json').then(function (response) {
+                return response.data;
             }).then(function (data) {
                 return data.schemas.filter(function (schema) {
                     return !!schema.fileMatch;
@@ -56,13 +56,14 @@ var SchemaStoreProvider = function () {
                         });
                     });
                 }).then(function (matching) {
-                    return Promise.all(matching.map(function (schemaInfo) {
-                        return utils_1.fetch(schemaInfo.url).then(function (result) {
-                            return result.json().then(function (schema) {
-                                return new json_schema_proposal_provider_1.JsonSchemaProposalProvider(schemaInfo.fileMatch, new json_schema_1.SchemaRoot(schema));
-                            });
+                    var promises = matching.map(function (schemaInfo) {
+                        return axios_1.default.get(schemaInfo.url).then(function (result) {
+                            return result.data;
+                        }).then(function (schema) {
+                            return new json_schema_proposal_provider_1.JsonSchemaProposalProvider(schemaInfo.fileMatch, new json_schema_1.SchemaRoot(schema));
                         });
-                    }));
+                    });
+                    return Promise.all(promises);
                 }).then(function (providers) {
                     return _this2.compoundProvier.addProviders(providers);
                 }).then(function (_) {

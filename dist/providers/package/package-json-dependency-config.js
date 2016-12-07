@@ -5,10 +5,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 var matchers_1 = require('../../matchers');
 var lodash_1 = require('lodash');
 
-var _require = require('npm-package-lookup');
-
-var _search = _require.search;
-var _versions = _require.versions;
+var _require = require('npm-package-lookup'),
+    _search = _require.search,
+    _versions = _require.versions;
 
 var DEPENDENCY_PROPERTIES = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 var KEY_MATCHER = matchers_1.request().key().path(matchers_1.path().key(DEPENDENCY_PROPERTIES));

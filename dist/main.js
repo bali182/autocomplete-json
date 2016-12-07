@@ -5,10 +5,9 @@ var json_schema_proposal_provider_1 = require('./json-schema-proposal-provider')
 var lodash_1 = require('lodash');
 var providers_1 = require('./providers');
 
-var _require = require('atom');
-
-var CompositeDisposable = _require.CompositeDisposable;
-var Disposable = _require.Disposable;
+var _require = require('atom'),
+    CompositeDisposable = _require.CompositeDisposable,
+    Disposable = _require.Disposable;
 
 var PROVIDERS = void 0;
 function activate() {

@@ -62,7 +62,7 @@ var AnyMatcher = {
 
 var JsonPathMatcher = function () {
     function JsonPathMatcher() {
-        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+        var matchers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
         _classCallCheck(this, JsonPathMatcher);
 
@@ -72,7 +72,7 @@ var JsonPathMatcher = function () {
     _createClass(JsonPathMatcher, [{
         key: "index",
         value: function index() {
-            var value = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+            var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
 
             var matcher = void 0;
             if (value === undefined) {
@@ -87,7 +87,7 @@ var JsonPathMatcher = function () {
     }, {
         key: "key",
         value: function key() {
-            var value = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+            var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
 
             var matcher = void 0;
             if (value === undefined) {
@@ -152,7 +152,7 @@ var ValueRequestMatcher = {
 
 var RequestMatcher = function () {
     function RequestMatcher() {
-        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+        var matchers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
         _classCallCheck(this, RequestMatcher);
 
@@ -188,7 +188,7 @@ var RequestMatcher = function () {
 
 var CompositeMatcher = function () {
     function CompositeMatcher() {
-        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+        var matchers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
         _classCallCheck(this, CompositeMatcher);
 
@@ -214,11 +214,11 @@ var AndMatcher = function (_CompositeMatcher) {
     _inherits(AndMatcher, _CompositeMatcher);
 
     function AndMatcher() {
-        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+        var matchers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
         _classCallCheck(this, AndMatcher);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(AndMatcher).call(this, matchers));
+        return _possibleConstructorReturn(this, (AndMatcher.__proto__ || Object.getPrototypeOf(AndMatcher)).call(this, matchers));
     }
 
     _createClass(AndMatcher, [{
@@ -242,11 +242,11 @@ var OrMatcher = function (_CompositeMatcher2) {
     _inherits(OrMatcher, _CompositeMatcher2);
 
     function OrMatcher() {
-        var matchers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+        var matchers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
         _classCallCheck(this, OrMatcher);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(OrMatcher).call(this, matchers));
+        return _possibleConstructorReturn(this, (OrMatcher.__proto__ || Object.getPrototypeOf(OrMatcher)).call(this, matchers));
     }
 
     _createClass(OrMatcher, [{

@@ -1,6 +1,6 @@
 "use strict";
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -9,9 +9,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var matchers_1 = require('../../matchers');
 var lodash_1 = require('lodash');
 
-var _require = require('npm-package-lookup');
-
-var search = _require.search;
+var _require = require('npm-package-lookup'),
+    search = _require.search;
 
 var PRESETS = 'presets';
 var BABEL_PRESET = 'babel-preset-';
@@ -27,10 +26,10 @@ var BabelRCPresetsProposalProvider = function () {
         value: function getProposals(request) {
             var _this = this;
 
-            var contents = request.contents;
-            var prefix = request.prefix;
-            var isBetweenQuotes = request.isBetweenQuotes;
-            var shouldAddComma = request.shouldAddComma;
+            var contents = request.contents,
+                prefix = request.prefix,
+                isBetweenQuotes = request.isBetweenQuotes,
+                shouldAddComma = request.shouldAddComma;
 
             if (PRESET_MATCHER.matches(request)) {
                 var _ret = function () {

@@ -11,7 +11,7 @@ var utils_1 = require('./utils');
 
 var RootProvider = function () {
     function RootProvider() {
-        var providers = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+        var providers = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
         _classCallCheck(this, RootProvider);
 
@@ -25,10 +25,10 @@ var RootProvider = function () {
         value: function getSuggestions(originalRequest) {
             var _this = this;
 
-            var editor = originalRequest.editor;
-            var bufferPosition = originalRequest.bufferPosition;
-            var activatedManually = originalRequest.activatedManually;
-            var prefix = originalRequest.prefix;
+            var editor = originalRequest.editor,
+                bufferPosition = originalRequest.bufferPosition,
+                activatedManually = originalRequest.activatedManually,
+                prefix = originalRequest.prefix;
 
             if (!this.checkRequest(originalRequest)) {
                 return Promise.resolve([]);
@@ -54,19 +54,19 @@ var RootProvider = function () {
     }, {
         key: 'checkRequest',
         value: function checkRequest(request) {
-            var editor = request.editor;
-            var bufferPosition = request.bufferPosition;
+            var editor = request.editor,
+                bufferPosition = request.bufferPosition;
 
             return !!(editor && editor.buffer && editor.buffer.file && editor.buffer.file.getBaseName && editor.lineTextForBufferRow && editor.getText && bufferPosition);
         }
     }, {
         key: 'buildRequest',
         value: function buildRequest(structure, originalRequest) {
-            var contents = structure.contents;
-            var positionInfo = structure.positionInfo;
-            var tokens = structure.tokens;
-            var editor = originalRequest.editor;
-            var bufferPosition = originalRequest.bufferPosition;
+            var contents = structure.contents,
+                positionInfo = structure.positionInfo,
+                tokens = structure.tokens;
+            var editor = originalRequest.editor,
+                bufferPosition = originalRequest.bufferPosition;
 
             var shouldAddComma = function shouldAddComma(info) {
                 if (!info || !info.nextToken || !tokens || tokens.length === 0) {

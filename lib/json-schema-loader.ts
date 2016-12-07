@@ -2,8 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import {trimLeft} from 'lodash';
 const uriJs = require('uri-js');
-// const fetch = require('node-fetch');
-import {fetch} from  './utils';
+import axios from 'axios';
 
 export interface IUri {
   scheme: string //"uri"
@@ -46,7 +45,7 @@ export const fileSchemaLoader = {
 
 export const httpSchemaLoader = <ISchemaLoader> {
   load(uri: IUri): Promise<Object> {
-    return fetch(uriJs.serialize(uri)).then((data: any) => data.json());
+    return <any> axios.get(uriJs.serialize(uri)).then(response => response.data as Object);
   }
 }
 

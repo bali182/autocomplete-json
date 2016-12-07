@@ -16,8 +16,8 @@ var KeyProposalFactory = function () {
     _createClass(KeyProposalFactory, [{
         key: 'createProposals',
         value: function createProposals(request, schema) {
-            var contents = request.contents;
-            var segments = request.segments;
+            var contents = request.contents,
+                segments = request.segments;
 
             var unwrappedContents = utils_1.resolveObject(segments, contents);
             var visitor = new json_schema_visitors_1.KeyProposalVisitor(unwrappedContents, new json_schema_visitors_1.SnippetProposalVisitor());
@@ -64,10 +64,10 @@ var JsonSchemaProposalFactory = function () {
         key: 'createProposals',
         value: function createProposals(request, schema) {
             var visitor = new json_schema_visitors_1.ValueProposalVisitor(new json_schema_visitors_1.SnippetProposalVisitor());
-            var isKeyPosition = request.isKeyPosition;
-            var isValuePosition = request.isValuePosition;
-            var isFileEmpty = request.isFileEmpty;
-            var contents = request.contents;
+            var isKeyPosition = request.isKeyPosition,
+                isValuePosition = request.isValuePosition,
+                isFileEmpty = request.isFileEmpty,
+                contents = request.contents;
 
             if (isFileEmpty) {
                 return lodash_1.flatten(schema.getPossibleTypes([]).map(function (schema) {

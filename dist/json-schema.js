@@ -29,11 +29,9 @@ var SchemaRoot = function () {
                     return partialSchema;
                 }
 
-                var _refSegments = _toArray(refSegments);
-
-                var key = _refSegments[0];
-
-                var tail = _refSegments.slice(1);
+                var _refSegments = _toArray(refSegments),
+                    key = _refSegments[0],
+                    tail = _refSegments.slice(1);
 
                 if (key === '#') {
                     return resolveInternal(partialSchema, tail);
@@ -198,7 +196,7 @@ var ObjectSchema = function (_BaseSchema) {
     function ObjectSchema(schema, parent, schemaRoot) {
         _classCallCheck(this, ObjectSchema);
 
-        var _this3 = _possibleConstructorReturn(this, Object.getPrototypeOf(ObjectSchema).call(this, schema, parent, schemaRoot));
+        var _this3 = _possibleConstructorReturn(this, (ObjectSchema.__proto__ || Object.getPrototypeOf(ObjectSchema)).call(this, schema, parent, schemaRoot));
 
         var properties = _this3.schema.properties || {};
         var patternProperties = _this3.schema.patternProperties || {};
@@ -210,10 +208,10 @@ var ObjectSchema = function (_BaseSchema) {
         _this3.patternProperties = Object.keys(patternProperties).map(function (key) {
             return [key, patternProperties[key]];
         }).map(function (_ref) {
-            var _ref2 = _slicedToArray(_ref, 2);
+            var _ref2 = _slicedToArray(_ref, 2),
+                pattern = _ref2[0],
+                rawSchema = _ref2[1];
 
-            var pattern = _ref2[0];
-            var rawSchema = _ref2[1];
             return new PatternProperty(new RegExp(pattern, 'g'), _this3.getSchemaRoot().wrap(rawSchema, _this3));
         });
         return _this3;
@@ -267,7 +265,7 @@ var ArraySchema = function (_BaseSchema2) {
     function ArraySchema(schema, parent, schemaRoot) {
         _classCallCheck(this, ArraySchema);
 
-        var _this4 = _possibleConstructorReturn(this, Object.getPrototypeOf(ArraySchema).call(this, schema, parent, schemaRoot));
+        var _this4 = _possibleConstructorReturn(this, (ArraySchema.__proto__ || Object.getPrototypeOf(ArraySchema)).call(this, schema, parent, schemaRoot));
 
         _this4.itemSchema = _this4.getSchemaRoot().wrap(_this4.schema.items, _this4);
         return _this4;
@@ -314,7 +312,7 @@ var EnumSchema = function (_BaseSchema3) {
     function EnumSchema() {
         _classCallCheck(this, EnumSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(EnumSchema).apply(this, arguments));
+        return _possibleConstructorReturn(this, (EnumSchema.__proto__ || Object.getPrototypeOf(EnumSchema)).apply(this, arguments));
     }
 
     _createClass(EnumSchema, [{
@@ -350,7 +348,7 @@ var CompositeSchema = function (_BaseSchema4) {
     function CompositeSchema(schema, parent, schemaRoot, keyWord) {
         _classCallCheck(this, CompositeSchema);
 
-        var _this6 = _possibleConstructorReturn(this, Object.getPrototypeOf(CompositeSchema).call(this, schema, parent, schemaRoot));
+        var _this6 = _possibleConstructorReturn(this, (CompositeSchema.__proto__ || Object.getPrototypeOf(CompositeSchema)).call(this, schema, parent, schemaRoot));
 
         _this6.schemas = schema[keyWord].map(function (schema) {
             return _this6.getSchemaRoot().wrap(schema, _this6);
@@ -388,7 +386,7 @@ var AnyOfSchema = function (_CompositeSchema) {
     function AnyOfSchema(schema, parent, schemaRoot) {
         _classCallCheck(this, AnyOfSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(AnyOfSchema).call(this, schema, parent, schemaRoot, 'anyOf'));
+        return _possibleConstructorReturn(this, (AnyOfSchema.__proto__ || Object.getPrototypeOf(AnyOfSchema)).call(this, schema, parent, schemaRoot, 'anyOf'));
     }
 
     _createClass(AnyOfSchema, [{
@@ -409,7 +407,7 @@ var AllOfSchema = function (_CompositeSchema2) {
     function AllOfSchema(schema, parent, schemaRoot) {
         _classCallCheck(this, AllOfSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(AllOfSchema).call(this, schema, parent, schemaRoot, 'allOf'));
+        return _possibleConstructorReturn(this, (AllOfSchema.__proto__ || Object.getPrototypeOf(AllOfSchema)).call(this, schema, parent, schemaRoot, 'allOf'));
     }
 
     _createClass(AllOfSchema, [{
@@ -430,7 +428,7 @@ var OneOfSchema = function (_CompositeSchema3) {
     function OneOfSchema(schema, parent, schemaRoot) {
         _classCallCheck(this, OneOfSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(OneOfSchema).call(this, schema, parent, schemaRoot, 'oneOf'));
+        return _possibleConstructorReturn(this, (OneOfSchema.__proto__ || Object.getPrototypeOf(OneOfSchema)).call(this, schema, parent, schemaRoot, 'oneOf'));
     }
 
     _createClass(OneOfSchema, [{
@@ -451,7 +449,7 @@ var NullSchema = function (_BaseSchema5) {
     function NullSchema() {
         _classCallCheck(this, NullSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(NullSchema).apply(this, arguments));
+        return _possibleConstructorReturn(this, (NullSchema.__proto__ || Object.getPrototypeOf(NullSchema)).apply(this, arguments));
     }
 
     _createClass(NullSchema, [{
@@ -482,7 +480,7 @@ var StringSchema = function (_BaseSchema6) {
     function StringSchema() {
         _classCallCheck(this, StringSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(StringSchema).apply(this, arguments));
+        return _possibleConstructorReturn(this, (StringSchema.__proto__ || Object.getPrototypeOf(StringSchema)).apply(this, arguments));
     }
 
     _createClass(StringSchema, [{
@@ -513,7 +511,7 @@ var NumberSchema = function (_BaseSchema7) {
     function NumberSchema() {
         _classCallCheck(this, NumberSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(NumberSchema).apply(this, arguments));
+        return _possibleConstructorReturn(this, (NumberSchema.__proto__ || Object.getPrototypeOf(NumberSchema)).apply(this, arguments));
     }
 
     _createClass(NumberSchema, [{
@@ -544,7 +542,7 @@ var BooleanSchema = function (_BaseSchema8) {
     function BooleanSchema() {
         _classCallCheck(this, BooleanSchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(BooleanSchema).apply(this, arguments));
+        return _possibleConstructorReturn(this, (BooleanSchema.__proto__ || Object.getPrototypeOf(BooleanSchema)).apply(this, arguments));
     }
 
     _createClass(BooleanSchema, [{
@@ -575,7 +573,7 @@ var AnySchema = function (_BaseSchema9) {
     function AnySchema() {
         _classCallCheck(this, AnySchema);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(AnySchema).apply(this, arguments));
+        return _possibleConstructorReturn(this, (AnySchema.__proto__ || Object.getPrototypeOf(AnySchema)).apply(this, arguments));
     }
 
     _createClass(AnySchema, [{

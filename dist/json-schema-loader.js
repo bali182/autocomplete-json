@@ -4,7 +4,7 @@ var fs = require('fs');
 var os = require('os');
 var lodash_1 = require('lodash');
 var uriJs = require('uri-js');
-var utils_1 = require('./utils');
+var axios_1 = require('axios');
 exports.fileSchemaLoader = {
     normalizePath: function normalizePath(path) {
         if (os.platform() === 'win32') {
@@ -32,8 +32,8 @@ exports.fileSchemaLoader = {
 };
 exports.httpSchemaLoader = {
     load: function load(uri) {
-        return utils_1.fetch(uriJs.serialize(uri)).then(function (data) {
-            return data.json();
+        return axios_1.default.get(uriJs.serialize(uri)).then(function (response) {
+            return response.data;
         });
     }
 };

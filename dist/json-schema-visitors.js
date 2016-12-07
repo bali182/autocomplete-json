@@ -87,7 +87,7 @@ var SchemaInspectorVisitor = function (_DefaultSchemaVisitor) {
     function SchemaInspectorVisitor() {
         _classCallCheck(this, SchemaInspectorVisitor);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(SchemaInspectorVisitor).call(this, function (schema, segment) {
+        return _possibleConstructorReturn(this, (SchemaInspectorVisitor.__proto__ || Object.getPrototypeOf(SchemaInspectorVisitor)).call(this, function (schema, segment) {
             return [];
         }));
     }
@@ -150,7 +150,7 @@ var SchemaFlattenerVisitor = function (_DefaultSchemaVisitor2) {
     function SchemaFlattenerVisitor() {
         _classCallCheck(this, SchemaFlattenerVisitor);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(SchemaFlattenerVisitor).call(this, function (schema, parameter) {
+        return _possibleConstructorReturn(this, (SchemaFlattenerVisitor.__proto__ || Object.getPrototypeOf(SchemaFlattenerVisitor)).call(this, function (schema, parameter) {
             return parameter.push(schema);
         }));
     }
@@ -195,7 +195,7 @@ var SnippetProposalVisitor = function (_DefaultSchemaVisitor3) {
     function SnippetProposalVisitor() {
         _classCallCheck(this, SnippetProposalVisitor);
 
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(SnippetProposalVisitor).call(this, function (schema, request) {
+        return _possibleConstructorReturn(this, (SnippetProposalVisitor.__proto__ || Object.getPrototypeOf(SnippetProposalVisitor)).call(this, function (schema, request) {
             return SnippetProposalVisitor.DEFAULT;
         }));
     }
@@ -262,7 +262,7 @@ var ValueProposalVisitor = function (_DefaultSchemaVisitor4) {
     function ValueProposalVisitor(snippetVisitor) {
         _classCallCheck(this, ValueProposalVisitor);
 
-        var _this10 = _possibleConstructorReturn(this, Object.getPrototypeOf(ValueProposalVisitor).call(this, function (schema, request) {
+        var _this10 = _possibleConstructorReturn(this, (ValueProposalVisitor.__proto__ || Object.getPrototypeOf(ValueProposalVisitor)).call(this, function (schema, request) {
             return [];
         }));
 
@@ -348,8 +348,8 @@ var ValueProposalVisitor = function (_DefaultSchemaVisitor4) {
         value: function visitEnumSchema(schema, request) {
             var _this12 = this;
 
-            var segments = request.segments;
-            var contents = request.contents;
+            var segments = request.segments,
+                contents = request.contents;
 
             var parent = schema.getParent();
             var possibleValues = schema.getValues();
@@ -413,7 +413,7 @@ var KeyProposalVisitor = function (_DefaultSchemaVisitor5) {
     function KeyProposalVisitor(unwrappedContents, snippetVisitor) {
         _classCallCheck(this, KeyProposalVisitor);
 
-        var _this14 = _possibleConstructorReturn(this, Object.getPrototypeOf(KeyProposalVisitor).call(this, function (schema, request) {
+        var _this14 = _possibleConstructorReturn(this, (KeyProposalVisitor.__proto__ || Object.getPrototypeOf(KeyProposalVisitor)).call(this, function (schema, request) {
             return [];
         }));
 
@@ -427,8 +427,8 @@ var KeyProposalVisitor = function (_DefaultSchemaVisitor5) {
         value: function visitObjectSchema(schema, request) {
             var _this15 = this;
 
-            var prefix = request.prefix;
-            var isBetweenQuotes = request.isBetweenQuotes;
+            var prefix = request.prefix,
+                isBetweenQuotes = request.isBetweenQuotes;
 
             return schema.getKeys().filter(function (key) {
                 return !_this15.unwrappedContents || key.indexOf(prefix) >= 0 && !_this15.unwrappedContents.hasOwnProperty(key);

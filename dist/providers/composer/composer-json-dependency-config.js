@@ -5,10 +5,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 var matchers_1 = require('../../matchers');
 var lodash_1 = require('lodash');
 
-var _require = require('packagist-package-lookup');
-
-var searchByName = _require.searchByName;
-var _versions = _require.versions;
+var _require = require('packagist-package-lookup'),
+    searchByName = _require.searchByName,
+    _versions = _require.versions;
 
 var DEPENDENCY_PROPERTIES = ['require', 'require-dev'];
 var STABLE_VERSION_REGEX = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/;

@@ -8,13 +8,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var lodash_1 = require('lodash');
 var minimatch = require('minimatch');
-var nodeFetch = require('node-fetch');
-var ElectronProxyAgent = require('electron-proxy-agent');
 
 var ArrayTraverser = function () {
     function ArrayTraverser() {
-        var array = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
-        var index = arguments.length <= 1 || arguments[1] === undefined ? -1 : arguments[1];
+        var array = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : -1;
 
         _classCallCheck(this, ArrayTraverser);
 
@@ -39,14 +37,14 @@ var ArrayTraverser = function () {
     }, {
         key: 'peekNext',
         value: function peekNext() {
-            var defaultValue = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+            var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
 
             return this.hasNext() ? this.array[this.index + 1] : defaultValue;
         }
     }, {
         key: 'peekPrevious',
         value: function peekPrevious() {
-            var defaultValue = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+            var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
 
             return this.hasPrevious() ? this.array[this.index - 1] : defaultValue;
         }
@@ -78,12 +76,12 @@ exports.ArrayTraverser = ArrayTraverser;
 
 var PositionInfo = function () {
     function PositionInfo() {
-        var segments = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
-        var keyPosition = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
-        var valuePosition = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
-        var previousToken = arguments.length <= 3 || arguments[3] === undefined ? null : arguments[3];
-        var editedToken = arguments.length <= 4 || arguments[4] === undefined ? null : arguments[4];
-        var nextToken = arguments.length <= 5 || arguments[5] === undefined ? null : arguments[5];
+        var segments = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+        var keyPosition = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        var valuePosition = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var previousToken = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+        var editedToken = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+        var nextToken = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : null;
 
         _classCallCheck(this, PositionInfo);
 
@@ -151,7 +149,7 @@ exports.PositionInfo = PositionInfo;
 
 var ValueHolder = function () {
     function ValueHolder() {
-        var value = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+        var value = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
 
         _classCallCheck(this, ValueHolder);
 
@@ -169,7 +167,7 @@ var ValueHolder = function () {
     }, {
         key: 'getOrElse',
         value: function getOrElse() {
-            var defaultValue = arguments.length <= 0 || arguments[0] === undefined ? undefined : arguments[0];
+            var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
 
             return this.hasValue() ? this.get() : defaultValue;
         }
@@ -197,11 +195,9 @@ function resolveObject(segments, object) {
         return object;
     }
 
-    var _segments = _toArray(segments);
-
-    var key = _segments[0];
-
-    var restOfSegments = _segments.slice(1);
+    var _segments = _toArray(segments),
+        key = _segments[0],
+        restOfSegments = _segments.slice(1);
 
     return resolveObject(restOfSegments, object[key]);
 }
@@ -215,10 +211,3 @@ function matches(file, patterns) {
     }) : doMatches(patterns, file);
 }
 exports.matches = matches;
-function fetch(url) {
-    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-    var proxyAgent = options.agent || new ElectronProxyAgent();
-    return nodeFetch(url, Object.assign({ agent: proxyAgent }, options));
-}
-exports.fetch = fetch;
