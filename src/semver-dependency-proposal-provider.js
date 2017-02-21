@@ -1,4 +1,6 @@
-import {flatten, trimLeft, trim, startsWith} from 'lodash'
+'use babel'
+
+import { flatten, trimLeft, trim, startsWith } from 'lodash'
 
 function createDependencyProposal(request, dependency) {
   const {isBetweenQuotes, shouldAddComma} = request
@@ -10,7 +12,7 @@ function createDependencyProposal(request, dependency) {
   if (isBetweenQuotes) {
     proposal.text = dependency.name
   } else {
-    proposal.snippet = '"' + dependency.name + '": "$1"' + (shouldAddComma ? ',' : '')
+    proposal.snippet = `"${ dependency.name }": "$1"${ shouldAddComma ? ',' : ''}`
   }
   return proposal
 }
@@ -25,7 +27,7 @@ function createVersionProposal(request, version) {
   if (isBetweenQuotes) {
     proposal.text = version
   } else {
-    proposal.snippet = '"' + version + '"' + (shouldAddComma ? ',' : '')
+    proposal.snippet = `"${ version }"${ shouldAddComma ? ',' : ''}`
   }
   return proposal
 }

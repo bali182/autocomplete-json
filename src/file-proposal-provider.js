@@ -1,10 +1,11 @@
-import {IProposalProvider, IRequest, IProposal, IFileProposalConfiguration, IMatcher, StorageType} from './provider-api'
-import {isEmpty, trimLeft, endsWith, startsWith, last, sortBy, includes} from 'lodash'
-import {sep, extname} from 'path'
+'use babel'
+
+import { StorageType } from './utils'
+import { isEmpty, trimLeft, startsWith, last, sortBy, includes } from 'lodash'
+import { sep, extname } from 'path'
 import fs from 'fs'
 
 const SLASHES = /\\|\// // slash (/) or backslash (\)
-
 
 function directoryExists(path) {
   try {
@@ -68,7 +69,7 @@ function containerName(root, segments) {
 }
 
 function prepareFiles(files, request, basePath, segments) {
-  let filteredFiles = isEmpty(last(segments))
+  const filteredFiles = isEmpty(last(segments))
     ? files
     : files.filter(file => startsWith(file.name, last(segments)))
   return sortBy(filteredFiles, f => f.isDirectory ? 0 : 1)
@@ -87,7 +88,7 @@ function createProposal(file, request, basePath, segments) {
       if (withoutPartial.length === 0) {
         proposalText = file.name
       } else {
-        proposalText = segments.slice(0, segments.length - 1).join('/') + '/' + file.name
+        proposalText = `${segments.slice(0, segments.length - 1).join('/') }/${ file.name}`
       }
     }
     return proposalText + (file.isDirectory ? '/' : '')
@@ -99,7 +100,7 @@ function createProposal(file, request, basePath, segments) {
   if (request.isBetweenQuotes) {
     proposal.text = text
   } else {
-    proposal.snippet = '"' + text + '$1"'
+    proposal.snippet = `"${ text }$1"`
   }
   proposal.type = proposal.rightLabel
   return proposal
@@ -107,7 +108,7 @@ function createProposal(file, request, basePath, segments) {
 
 export class FileProposalProvider {
 
-  constructor(configuration) { 
+  constructor(configuration) {
     this.configuration = configuration
   }
 
@@ -128,10 +129,8 @@ export class FileProposalProvider {
       searchDir,
       this.configuration.getStorageType(),
       this.configuration.getFileExtensions()
-    ).then(results => {
-      return prepareFiles(results, request, dir, segments)
-        .map(file => createProposal(file, request, dir, segments))
-    })
+    ).then(results => prepareFiles(results, request, dir, segments)
+        .map(file => createProposal(file, request, dir, segments)))
   }
 
   getFilePattern() {

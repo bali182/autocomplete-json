@@ -1,5 +1,6 @@
-import {IToken} from './tokenizer'
-import {isObject, isArray} from 'lodash'
+'use babel'
+
+import { isObject, isArray } from 'lodash'
 import minimatch from 'minimatch'
 import axios from 'axios'
 
@@ -147,9 +148,18 @@ export function resolveObject(segments, object) {
 }
 
 function doMatches(pattern, file) {
-  return minimatch((pattern.indexOf("/") > -1) ? file.getRealPathSync() : file.getBaseName(), (process.platform == 'win32') ? pattern.replace(/\//g, '\\') : pattern)
+  const path = pattern.indexOf('/') > -1 ? file.getRealPathSync() : file.getBaseName()
+  const search = process.platform == 'win32' ? pattern.replace(/\//g, '\\') : pattern
+  return minimatch(path, search)
 }
 
 export function matches(file, patterns) {
-  return isArray(patterns) ? patterns.some(pattern => doMatches(pattern, file)) : doMatches(patterns as string, file)
+  return isArray(patterns) ? patterns.some(pattern => doMatches(pattern, file)) : doMatches(patterns, file)
 }
+
+export const StorageType = {
+  FILE: 'FILE',
+  FOLDER: 'FOLDER',
+  BOTH: 'BOTH'
+}
+

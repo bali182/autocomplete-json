@@ -1,32 +1,56 @@
-import {BaseSchema, ArraySchema, ObjectSchema, BooleanSchema, NullSchema, EnumSchema, StringSchema,
-NumberSchema, CompositeSchema, AllOfSchema, AnyOfSchema, OneOfSchema, AnySchema} from './json-schema'
-import {resolveObject} from './utils'
-import {flatten} from 'lodash'
+'use babel'
 
+import { flatten } from 'lodash'
+import { resolveObject } from './utils'
+import {
+  ArraySchema, ObjectSchema, AnyOfSchema
+} from './json-schema'
 
 /** Base implementation for JSON schema visitor. Applies the parameter function as all non-overwritten methods. */
-export class DefaultSchemaVisitor{
-  constructor(defaultVisit) { 
+export class DefaultSchemaVisitor {
+  constructor(defaultVisit) {
     this.defaultVisit = defaultVisit
   }
-  visitObjectSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitArraySchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitEnumSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitStringSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitNumberSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitBooleanSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitOneOfSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitAllOfSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitAnyOfSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitNullSchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
-  visitAnySchema(schema, parameter) { return this.defaultVisit(schema, parameter) }
+  visitObjectSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitArraySchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitEnumSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitStringSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitNumberSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitBooleanSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitOneOfSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitAllOfSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitAnyOfSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitNullSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitAnySchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
 }
 
 /** Visitor for finding the child schemas of any schema. */
 export class SchemaInspectorVisitor extends DefaultSchemaVisitor {
 
   constructor() {
-    super((schema, segment) => [])
+    super(() => [])
   }
 
   visitObjectSchema(schema, segment) {
@@ -39,7 +63,7 @@ export class SchemaInspectorVisitor extends DefaultSchemaVisitor {
       .map(p => p.getSchema())
   }
 
-  visitArraySchema(schema, segment) {
+  visitArraySchema(schema) {
     return [schema.getItemSchema()]
   }
 
@@ -78,7 +102,7 @@ export class SchemaFlattenerVisitor extends DefaultSchemaVisitor {
 /** Visitor for providing value snippets for the given schema. */
 export class SnippetProposalVisitor extends DefaultSchemaVisitor {
   constructor() {
-    super((schema, request) => SnippetProposalVisitor.DEFAULT)
+    super(() => SnippetProposalVisitor.DEFAULT)
   }
 
   comma(request) {
@@ -88,29 +112,29 @@ export class SnippetProposalVisitor extends DefaultSchemaVisitor {
   visitStringLike(schema, request) {
     const {isBetweenQuotes} = request
     const q = isBetweenQuotes ? '' : '"'
-    return q + '${1:' + (schema.getDefaultValue() || '') + '}' + q + this.comma(request)
+    return `${q}\${1:${schema.getDefaultValue() || ''}}${q}${this.comma(request)}`
   }
 
-  visitStringSchema(schemaSchema, request) {
+  visitStringSchema(schema, request) {
     return this.visitStringLike(schema, request)
   }
 
   visitNumberSchema(schema, request) {
     return request.isBetweenQuotes
       ? this.defaultVisit(schema, request)
-      : '${1:' + (schema.getDefaultValue() || '0') + '}' + this.comma(request)
+      : `\${1:${schema.getDefaultValue() || '0'}}${this.comma(request)}`
   }
 
   visitBooleanSchema(schema, request) {
     return request.isBetweenQuotes
       ? this.defaultVisit(schema, request)
-      : '${1:' + (schema.getDefaultValue() || 'false') + '}' + this.comma(request)
+      : `\${1:${schema.getDefaultValue() || 'false'}}${this.comma(request)}`
   }
 
   visitNullSchema(schema, request) {
     return request.isBetweenQuotes
       ? this.defaultVisit(schema, request)
-      : '${1:null}' + this.comma(request)
+      : `\${1:null}${this.comma(request)}`
   }
 
   visitEnumSchema(schema, request) {
@@ -120,23 +144,23 @@ export class SnippetProposalVisitor extends DefaultSchemaVisitor {
   visitArraySchema(schema, request) {
     return request.isBetweenQuotes
       ? this.defaultVisit(schema, request)
-      : '[$1]' + this.comma(request)
+      : `[$1]${this.comma(request)}`
   }
 
   visitObjectSchema(schema, request) {
     return request.isBetweenQuotes
       ? this.defaultVisit(schema, request)
-      : '{$1}' + this.comma(request)
+      : `{$1}${this.comma(request)}`
   }
 }
 
 SnippetProposalVisitor.DEFAULT = '$1'
 
 /** Visitor for providing an array of IProposal s for any schema. */
-export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<IProposal>> {
+export class ValueProposalVisitor extends DefaultSchemaVisitor {
 
   constructor(snippetVisitor) {
-    super((schema, request) => [])
+    super(() => [])
     this.snippetVisitor = snippetVisitor
   }
 
@@ -162,7 +186,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
     return [proposal]
   }
 
-  visitStringSchema(schemaSchema, request) {
+  visitStringSchema(schema, request) {
     if (request.isBetweenQuotes) {
       return []
     }
@@ -177,7 +201,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
       return []
     }
     const proposal = this.createBaseProposalFor(schema)
-    proposal.displayText = schema.getDefaultValue() ? `${schema.getDefaultValue()}` : "0"
+    proposal.displayText = schema.getDefaultValue() ? `${schema.getDefaultValue()}` : '0'
     proposal.snippet = schema.accept(this.snippetVisitor, request)
     return [proposal]
   }
@@ -189,7 +213,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
     return [true, false].map(bool => {
       const proposal = this.createBaseProposalFor(schema)
       proposal.displayText = bool ? 'true' : 'false'
-      proposal.snippet = proposal.displayText + '${1}' + this.snippetVisitor.comma(request)
+      proposal.snippet = `${proposal.displayText}\${1}${this.snippetVisitor.comma(request)}`
       return proposal
     })
   }
@@ -199,7 +223,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
       return []
     }
     const proposal = this.createBaseProposalFor(schema)
-    proposal.displayText = schema.getDefaultValue() ? `${schema.getDefaultValue()}` : "null"
+    proposal.displayText = schema.getDefaultValue() ? `${schema.getDefaultValue()}` : 'null'
     proposal.snippet = schema.accept(this.snippetVisitor, request)
     return [proposal]
   }
@@ -220,7 +244,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
       if (request.isBetweenQuotes) {
         proposal.text = enumValue
       } else {
-        proposal.snippet = '"' + enumValue + '${1}"' + this.snippetVisitor.comma(request)
+        proposal.snippet = `"${enumValue}\${1}"${this.snippetVisitor.comma(request)}`
       }
       return proposal
     })
@@ -250,7 +274,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor<IRequest, Array<I
 export class KeyProposalVisitor extends DefaultSchemaVisitor {
 
   constructor(unwrappedContents, snippetVisitor) {
-    super(((schema, request) => []))
+    super((() => []))
     this.unwrappedContents = unwrappedContents
     this.snippetVisitor = snippetVisitor
   }

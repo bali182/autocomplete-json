@@ -10,11 +10,7 @@
   "keywords": [
     "autocomplete",
     "json",
-    "package",
-    "tsconfig",
-    "bower",
-    "babelrc",
-    "composer"
+    "atom"
   ],
   "author": "Balazs Edes",
   "license": "MIT",
@@ -36,16 +32,8 @@
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
-    "babel-core": "^6.5.2",
-    "babel-polyfill": "^6.5.0",
-    "babel-preset-es2015": "^6.5.0",
-    "babel-preset-stage-0": "^6.5.0",
-    "del": "^2.2.0",
-    "gulp": "^3.9.0",
-    "gulp-babel": "^6.1.2",
-    "gulp-typescript": "^2.10.0",
-    "merge2": "^0.3.6",
-    "typescript": "^1.7.5"
+    "babel-eslint": "^7.1.1",
+    "eslint": "^3.16.0"
   },
   "providedServices": {
     "autocomplete.provider": {
@@ -75,5 +63,8 @@
         "1.0.0 ": "consumeJsonProposalProviders"
       }
     }
+  },
+  "scripts": {
+    "lint": "eslint src/** --config .eslintrc"
   }
 }

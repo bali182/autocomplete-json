@@ -1,8 +1,9 @@
+'use babel'
+
 import RootProvider from './root-provider'
-import {IJsonSchemaProvider, IProposalProvider} from './provider-api'
-import {JsonSchemaProposalProvider} from './json-schema-proposal-provider'
-import {isArray, remove} from 'lodash'
-import {defaultProviders, defaultSchemaProviders} from './providers'
+import { JsonSchemaProposalProvider } from './json-schema-proposal-provider'
+import { isArray, remove } from 'lodash'
+import { defaultProviders, defaultSchemaProviders } from './providers'
 
 const {CompositeDisposable, Disposable} = require('atom')
 
@@ -44,7 +45,7 @@ function createCompositeDisposable(providers) {
 
 export function consumeJsonSchemaProviders(provider) {
   const schemaProviders = isArray(provider) ? provider : [provider]
-  const providerPromises = schemaProviders.filter(s => !!s)
+  const providerPromises = schemaProviders.filter(s => Boolean(s))
     .map(s => JsonSchemaProposalProvider.createFromProvider(s))
   providerPromises.forEach(promise => promise.then(p => PROVIDERS.push(p)))
   const disposables = providerPromises.map(promise => createPromiseDisposable(promise))
@@ -52,7 +53,7 @@ export function consumeJsonSchemaProviders(provider) {
 }
 
 export function consumeJsonProposalProviders(provider) {
-  const providers = (isArray(provider) ? provider : [provider]).filter(p => !!p)
+  const providers = (isArray(provider) ? provider : [provider]).filter(p => Boolean(p))
   providers.forEach(p => PROVIDERS.push(p))
   return createCompositeDisposable(providers.map(provider => createSyncDisposable(provider)))
 }

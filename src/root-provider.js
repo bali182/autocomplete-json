@@ -1,7 +1,9 @@
-import {includes, trimLeft} from 'lodash'
-import {tokenize, TokenType} from './tokenizer'
-import {provideStructure, IStructureInfo} from './structure-provider'
-import {PositionInfo, matches} from './utils'
+'use babel'
+
+import { includes, trimLeft } from 'lodash'
+import { tokenize, TokenType } from './tokenizer'
+import { provideStructure, IStructureInfo } from './structure-provider'
+import { PositionInfo, matches } from './utils'
 
 export default class RootProvider {
 
@@ -37,14 +39,13 @@ export default class RootProvider {
 
   checkRequest(request) {
     const {editor, bufferPosition} = request
-    return !!(editor
+    return Boolean(editor
       && editor.buffer
       && editor.buffer.file
       && editor.buffer.file.getBaseName
       && editor.lineTextForBufferRow
       && editor.getText
-      && bufferPosition
-    )
+      && bufferPosition)
   }
 
 
@@ -75,12 +76,12 @@ export default class RootProvider {
       prefix: prefix(positionInfo),
       segments: positionInfo ? positionInfo.segments : null,
       token: positionInfo ? (positionInfo.editedToken) ? positionInfo.editedToken.src : null : null,
-      isKeyPosition: !!(positionInfo && positionInfo.keyPosition),
-      isValuePosition: !!(positionInfo && positionInfo.valuePosition),
-      isBetweenQuotes: !!(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === TokenType.STRING),
-      shouldAddComma: !!shouldAddComma(positionInfo),
+      isKeyPosition: Boolean(positionInfo && positionInfo.keyPosition),
+      isValuePosition: Boolean(positionInfo && positionInfo.valuePosition),
+      isBetweenQuotes: Boolean(positionInfo && positionInfo.editedToken && positionInfo.editedToken.type === TokenType.STRING),
+      shouldAddComma: Boolean(shouldAddComma(positionInfo)),
       isFileEmpty: tokens.length === 0,
-      editor: editor
+      editor
     }
   }
 

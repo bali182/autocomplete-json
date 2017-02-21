@@ -1,12 +1,14 @@
+'use babel'
+
 import fs from 'fs'
 import os from 'os'
-import uriJs  from 'uri-js'
+import uriJs from 'uri-js'
 import axios from 'axios'
-import {trimLeft} from 'lodash'
+import { trimLeft } from 'lodash'
 
 export const fileSchemaLoader = {
-  normalizePath(path){
-    if(os.platform() === 'win32') {
+  normalizePath(path) {
+    if (os.platform() === 'win32') {
       return trimLeft(path, '/')
     }
     return path
@@ -14,7 +16,7 @@ export const fileSchemaLoader = {
 
   load(uri) {
     return new Promise((resolve, reject) => {
-      fs.readFile(this.normalizePath(uri.path), 'UTF-8', /* TODO think about detecting this */ (error, data) => {
+      fs.readFile(this.normalizePath(uri.path), 'UTF-8', /* TODO think about detecting this */(error, data) => {
         if (error) {
           reject(error)
         } else {
@@ -30,8 +32,8 @@ export const fileSchemaLoader = {
 }
 
 export const httpSchemaLoader = {
-  load(uri){
-    return  axios.get(uriJs.serialize(uri)).then(response => response.data as Object)
+  load(uri) {
+    return axios.get(uriJs.serialize(uri)).then(response => response.data)
   }
 }
 

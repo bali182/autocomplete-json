@@ -1,5 +1,7 @@
+'use babel'
+
 import { trim } from 'lodash'
-import { ArrayTraverser, PositionInfo, IPositionInfo, ValueHolder } from './utils'
+import { ArrayTraverser, PositionInfo, ValueHolder } from './utils'
 import { TokenType } from './tokenizer'
 
 function intersectsWithToken(position, token) {
@@ -11,9 +13,9 @@ function intersectsWithToken(position, token) {
 
   if (token.type === TokenType.STRING) {
     return tRow === pRow && tCol <= pCol && tCol + tLength - 1 > pCol // attention to ""
-  } else {
-    return tRow === pRow && tCol <= pCol && tCol + tLength > pCol
-  }
+  } 
+  return tRow === pRow && tCol <= pCol && tCol + tLength > pCol
+  
 }
 
 function isBetweenTokenType(position, firstToken, secondToken) {
@@ -66,12 +68,12 @@ function consumeValue(tokens, container, position, posInfo, posInfoHolder) {
       checkPosition()
       break
     case TokenType.BEGIN_OBJECT:
-      let object = {}
+      const object = {}
       consumeObject(object, tokens, position, posInfo, posInfoHolder)
       container.push(object)
       break
     case TokenType.BEGIN_ARRAY:
-      let array = []
+      const array = []
       consumeArray(array, tokens, position, posInfo, posInfoHolder)
       container.push(array)
       break

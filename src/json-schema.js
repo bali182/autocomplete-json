@@ -1,5 +1,7 @@
-import {assign, clone, isEmpty, isArray, isObject, memoize, flatten} from 'lodash'
-import {SchemaFlattenerVisitor, SchemaInspectorVisitor} from './json-schema-visitors'
+'use babel'
+
+import { assign, clone, isEmpty, isArray, isObject, memoize, flatten } from 'lodash'
+import { SchemaFlattenerVisitor, SchemaInspectorVisitor } from './json-schema-visitors'
 
 export class SchemaRoot {
 
@@ -47,8 +49,7 @@ export class SchemaRoot {
     if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
       if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
         return new ObjectSchema(schema, parent, this)
-      }
-      else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
+      } else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
         return new ArraySchema(schema, parent, this)
       }
     }
@@ -96,7 +97,7 @@ export class SchemaRoot {
   }
 }
 
-export class BaseSchema  {
+export class BaseSchema {
   constructor(schema, parent, schemaRoot) {
     this.schema = schema
     this.parent = parent
@@ -121,11 +122,11 @@ export class PatternProperty {
     this.pattern = pattern
     this.schema = schema
   }
-  
+
   getPattern() {
     return this.pattern
   }
-  
+
   getSchema() {
     return this.schema
   }
@@ -157,7 +158,7 @@ export class ObjectSchema extends BaseSchema {
   getProperties() {
     return this.properties
   }
-  
+
   getPatternProperties() {
     return this.patternProperties
   }
@@ -195,7 +196,7 @@ export class ArraySchema extends BaseSchema {
   }
 
   hasUniqueItems() {
-    return !!(this.schema.uniqueItems || false)
+    return Boolean(this.schema.uniqueItems || false)
   }
 
   getDisplayType() {
@@ -224,7 +225,7 @@ export class EnumSchema extends BaseSchema {
   }
 }
 
-export abstract class CompositeSchema extends BaseSchema {
+export class CompositeSchema extends BaseSchema {
   constructor(schema, parent, schemaRoot, keyWord) {
     super(schema, parent, schemaRoot)
     this.schemas = schema[keyWord].map(schema => this.getSchemaRoot().wrap(schema, this))
@@ -234,7 +235,7 @@ export abstract class CompositeSchema extends BaseSchema {
     return this.schemas
   }
 
-  getDefaultValue(){
+  getDefaultValue() {
     return null
   }
 
@@ -278,7 +279,7 @@ export class NullSchema extends BaseSchema {
     return visitor.visitNullSchema(this, parameter)
   }
 
-  getDefaultValue(){
+  getDefaultValue() {
     return null
   }
 

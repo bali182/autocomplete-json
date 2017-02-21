@@ -1,6 +1,7 @@
-import {IProposalProvider, IJsonSchemaProvider} from './provider-api'
-import {FileProposalProvider} from './file-proposal-provider'
-import {SemverDependencyProposalProvider} from './semver-dependency-proposal-provider'
+'use babel'
+
+import { FileProposalProvider } from './file-proposal-provider'
+import { SemverDependencyProposalProvider } from './semver-dependency-proposal-provider'
 
 // Regular provider classes
 import BabelRCPresetsProposalProvider from './providers/babelrc/babelrc-presets-proposal-provider'

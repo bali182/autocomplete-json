@@ -1,5 +1,6 @@
-import {isNumber, isString, isArray} from 'lodash'
-import {IRequest, IMatcher, IRequestMatcher, ICompositeMatcher, IJsonPathMatcher} from './provider-api'
+'use babel'
+
+import { isNumber, isString, isArray } from 'lodash'
 
 class IndexMatcher {
   constructor(index) {
@@ -93,7 +94,7 @@ class PathRequestMatcher {
   }
 
   matches(request) {
-    return !!request.segments && this.matcher.matches(request.segments)
+    return Boolean(request.segments) && this.matcher.matches(request.segments)
   }
 }
 

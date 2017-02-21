@@ -1,6 +1,8 @@
-import {SchemaRoot} from './json-schema'
-import {JsonSchemaProposalFactory} from './json-schema-proposal-factory'
-import {loadSchema} from './json-schema-loader'
+'use babel'
+
+import { SchemaRoot } from './json-schema'
+import { JsonSchemaProposalFactory } from './json-schema-proposal-factory'
+import { loadSchema } from './json-schema-loader'
 
 export class JsonSchemaProposalProvider {
   constructor(filePattern, schemaRoot) {
