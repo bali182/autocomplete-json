@@ -1,6 +1,6 @@
 'use babel'
 
-import { assign } from 'lodash'
+import assign from 'lodash/assign'
 import { search, versions } from 'npm-package-lookup'
 
 import { path, request } from '../../matchers'
@@ -30,14 +30,14 @@ export default {
     return 'package.json'
   },
 
-  isAvailable(request, dependency) {
+  isAvailable() {
     return false
   },
 
-  getDependencyFilter(request) {
-    const {contents} = request
+  getDependencyFilter(req) {
+    const {contents} = req
     if (!contents) {
-      return dependency => true
+      return () => true
     }
     const objects = DEPENDENCY_PROPERTIES.map(prop => contents[prop] || {})
     const merged = assign(...objects) || {}

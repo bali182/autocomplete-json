@@ -1,6 +1,13 @@
 'use babel'
 
-import { assign, clone, isEmpty, isArray, isObject, memoize, flatten } from 'lodash'
+import assign from 'lodash/assign'
+import clone from 'lodash/clone'
+import isEmpty from 'lodash/isEmpty'
+import isArray from 'lodash/isArray'
+import isObject from 'lodash/isObject'
+import memoize from 'lodash/memoize'
+import flatten from 'lodash/flatten'
+
 import { SchemaFlattenerVisitor, SchemaInspectorVisitor } from './json-schema-visitors'
 
 export class SchemaRoot {
@@ -70,6 +77,7 @@ export class SchemaRoot {
       case 'integer': return new NumberSchema(schema, parent, this)
       case 'string': return new StringSchema(schema, parent, this)
       case 'null': return new NullSchema(schema, parent, this)
+      default: break
     }
     console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
     return new AnySchema({}, parent, this)
@@ -228,7 +236,7 @@ export class EnumSchema extends BaseSchema {
 export class CompositeSchema extends BaseSchema {
   constructor(schema, parent, schemaRoot, keyWord) {
     super(schema, parent, schemaRoot)
-    this.schemas = schema[keyWord].map(schema => this.getSchemaRoot().wrap(schema, this))
+    this.schemas = schema[keyWord].map(s => this.getSchemaRoot().wrap(s, this))
   }
 
   getSchemas() {

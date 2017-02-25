@@ -46,12 +46,12 @@ export default class SchemaStoreProvider {
           return Promise.all(promises)
         })
         .then(providers => this.compoundProvier.addProviders(providers))
-        .then(_ => {
+        .then(() => {
           if (!this.compoundProvier.hasProposals(file)) {
             this.blackList[file.getBaseName()] = true
           }
         })
-        .then(_ => this.compoundProvier.getProposals(request))
+        .then(() => this.compoundProvier.getProposals(request))
     }
     return this.compoundProvier.getProposals(request)
   }

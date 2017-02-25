@@ -1,6 +1,6 @@
 'use babel'
 
-import { flatten } from 'lodash'
+import flatten from 'lodash/flatten'
 import { KeyProposalVisitor, ValueProposalVisitor, SnippetProposalVisitor } from './json-schema-visitors'
 import { resolveObject } from './utils'
 

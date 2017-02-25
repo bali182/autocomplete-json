@@ -1,12 +1,13 @@
 'use babel'
 
+import assign from 'lodash/assign'
+import trimStart from 'lodash/trimStart'
+
 import { path, request } from '../../matchers'
-import { assign, trimLeft } from 'lodash'
 
 const {searchByName, versions} = require('packagist-package-lookup')
 
 const DEPENDENCY_PROPERTIES = ['require', 'require-dev']
-const STABLE_VERSION_REGEX = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/
 
 const KEY_MATCHER = request().key().path(path().key(DEPENDENCY_PROPERTIES))
 const VALUE_MATCHER = request().value().path(path().key(DEPENDENCY_PROPERTIES).key())
@@ -14,7 +15,7 @@ const VALUE_MATCHER = request().value().path(path().key(DEPENDENCY_PROPERTIES).k
 export default {
   search: searchByName,
   versions(name) {
-    return versions(name, { sort: 'DESC', stable: true }).then(versions => versions.map(v => trimLeft(v, 'v')))
+    return versions(name, { sort: 'DESC', stable: true }).then(vers => vers.map(v => trimStart(v, 'v')))
   },
   dependencyRequestMatcher() {
     return KEY_MATCHER
@@ -25,10 +26,10 @@ export default {
   getFilePattern() {
     return 'composer.json'
   },
-  getDependencyFilter(request) {
-    const {contents} = request
+  getDependencyFilter(req) {
+    const {contents} = req
     if (!contents) {
-      return dependency => true
+      return () => true
     }
     const objects = DEPENDENCY_PROPERTIES.map(prop => contents[prop] || {})
     const merged = assign(...objects) || {}

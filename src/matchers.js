@@ -1,6 +1,8 @@
 'use babel'
 
-import { isNumber, isString, isArray } from 'lodash'
+import isNumber from 'lodash/isNumber'
+import isString from 'lodash/isString'
+import isArray from 'lodash/isArray'
 
 class IndexMatcher {
   constructor(index) {
@@ -35,7 +37,7 @@ const AnyKeyMatcher = {
 }
 
 const AnyMatcher = {
-  matches(segment) {
+  matches() {
     return true
   }
 }
@@ -46,7 +48,7 @@ class JsonPathMatcher {
   }
 
   index(value) {
-    let matcher
+    let matcher = null
     if (value === undefined) {
       matcher = AnyIndexMatcher
     } else {
@@ -57,8 +59,8 @@ class JsonPathMatcher {
     return new JsonPathMatcher(this.matchers.concat([matcher]))
   }
 
-  key(value = undefined) {
-    let matcher
+  key(value) {
+    let matcher = null
     if (value === undefined) {
       matcher = AnyKeyMatcher
     } else {
@@ -93,20 +95,20 @@ class PathRequestMatcher {
     this.matcher = matcher
   }
 
-  matches(request) {
-    return Boolean(request.segments) && this.matcher.matches(request.segments)
+  matches({segments}) {
+    return Boolean(segments) && this.matcher.matches(segments)
   }
 }
 
 const KeyRequestMatcher = {
-  matches(request) {
-    return request.isKeyPosition
+  matches({isKeyPosition}) {
+    return isKeyPosition
   }
 }
 
 const ValueRequestMatcher = {
-  matches(request) {
-    return request.isValuePosition
+  matches({isValuePosition}) {
+    return isValuePosition
   }
 }
 
@@ -127,8 +129,8 @@ class RequestMatcher {
     return new RequestMatcher(this.matchers.concat([KeyRequestMatcher]))
   }
 
-  matches(request) {
-    return this.matchers.every(matcher => matcher.matches(request))
+  matches(req) {
+    return this.matchers.every(matcher => matcher.matches(req))
   }
 }
 
@@ -161,7 +163,7 @@ class AndMatcher extends CompositeMatcher {
   }
 }
 
-class OrMatcher extends CompositeMatcher<T> {
+class OrMatcher extends CompositeMatcher {
   constructor(matchers = []) {
     super(matchers)
   }

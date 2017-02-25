@@ -1,7 +1,13 @@
 'use babel'
 
+import isEmpty from 'lodash/isEmpty'
+import trimStart from 'lodash/trimStart'
+import startsWith from 'lodash/startsWith'
+import last from 'lodash/last'
+import sortBy from 'lodash/sortBy'
+import includes from 'lodash/includes'
+
 import { StorageType } from './utils'
-import { isEmpty, trimLeft, startsWith, last, sortBy, includes } from 'lodash'
 import { sep, extname } from 'path'
 import fs from 'fs'
 
@@ -53,13 +59,13 @@ function containerName(root, segments) {
   // Last character is some kind of slash.
   if (isEmpty(last(segments))) {
     // this means, the last segment was (or should be) a directory.
-    const path = root + sep + trimLeft(segments.join(sep), '/\\')
+    const path = root + sep + trimStart(segments.join(sep), '/\\')
     if (directoryExists(path)) {
       return path
     }
   } else {
     // Last segment is not a slash, meaning we don't need, what the user typed until the last slash.
-    const lastIsPartialFile = root + sep + trimLeft(segments.slice(0, segments.length - 1).join(sep), '/\\')
+    const lastIsPartialFile = root + sep + trimStart(segments.slice(0, segments.length - 1).join(sep), '/\\')
     if (directoryExists(lastIsPartialFile)) {
       return lastIsPartialFile
     }
@@ -88,7 +94,7 @@ function createProposal(file, request, basePath, segments) {
       if (withoutPartial.length === 0) {
         proposalText = file.name
       } else {
-        proposalText = `${segments.slice(0, segments.length - 1).join('/') }/${ file.name}`
+        proposalText = `${segments.slice(0, segments.length - 1).join('/')}/${file.name}`
       }
     }
     return proposalText + (file.isDirectory ? '/' : '')
@@ -100,7 +106,7 @@ function createProposal(file, request, basePath, segments) {
   if (request.isBetweenQuotes) {
     proposal.text = text
   } else {
-    proposal.snippet = `"${ text }$1"`
+    proposal.snippet = `"${text}$1"`
   }
   proposal.type = proposal.rightLabel
   return proposal
@@ -130,7 +136,7 @@ export class FileProposalProvider {
       this.configuration.getStorageType(),
       this.configuration.getFileExtensions()
     ).then(results => prepareFiles(results, request, dir, segments)
-        .map(file => createProposal(file, request, dir, segments)))
+      .map(file => createProposal(file, request, dir, segments)))
   }
 
   getFilePattern() {

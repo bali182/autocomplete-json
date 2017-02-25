@@ -1,8 +1,7 @@
 'use babel'
 
+import flatten from 'lodash/flatten'
 import { matches } from '../../utils'
-import { flatten } from 'lodash'
-import minimatch from 'minimatch'
 
 export class CompoundProposalProvider {
   constructor() {

@@ -1,7 +1,7 @@
 'use babel'
 
+import startsWith from 'lodash/startsWith'
 import { path, request } from '../../matchers'
-import { includes, isString, isNumber, trim, startsWith, flatten } from 'lodash'
 import { search } from 'npm-package-lookup'
 
 const PRESETS = 'presets'
@@ -10,8 +10,8 @@ const BABEL_PRESET = 'babel-preset-'
 const PRESET_MATCHER = request().value().path(path().key(PRESETS).index())
 
 export default class BabelRCPresetsProposalProvider {
-  getProposals(request) {
-    const {contents, prefix, isBetweenQuotes, shouldAddComma} = request
+  getProposals(req) {
+    const {contents, prefix, isBetweenQuotes, shouldAddComma} = req
     if (PRESET_MATCHER.matches(request)) {
       const presets = contents[PRESETS] || []
       const results = search(this.calculateSearchKeyword(prefix))

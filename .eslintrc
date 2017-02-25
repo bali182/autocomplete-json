@@ -13,11 +13,13 @@
     "window": true,
     "require": true,
     "module": true,
-    "__dirname": true
+    "__dirname": true,
+    "process": true
   },
   "parser": "babel-eslint",
   "rules": {
     "no-console": "off",
+    "no-case-declarations": "off",
     "no-cond-assign": "error",
     "no-debugger": "error",
     "no-dupe-args": "error",
@@ -85,7 +87,6 @@
     "no-shadow": "error",
     "no-undef-init": "error",
     "no-undef": "error",
-    "no-undefined": "error",
     "no-unused-vars": "error",
     "array-bracket-spacing": ["error", "never"],
     "block-spacing": "error",
