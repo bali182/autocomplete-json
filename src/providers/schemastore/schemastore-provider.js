@@ -2,9 +2,11 @@
 
 import minimatch from 'minimatch'
 import axios from 'axios'
+
 import { JsonSchemaProposalProvider } from '../../json-schema-proposal-provider'
-import { SchemaRoot } from '../../json-schema'
 import { CompoundProposalProvider } from './compound-provider'
+import { resolve } from '../../json-schema-resolver'
+import { wrap } from '../../json-schema'
 
 export default class SchemaStoreProvider {
   constructor() {
@@ -34,15 +36,12 @@ export default class SchemaStoreProvider {
 
     if (!this.compoundProvier.hasProposals(file)) {
       return this.getSchemaInfos()
-        .then(schemaInfos => schemaInfos.filter(({fileMatch}) => fileMatch.some(match => minimatch(file.getBaseName(), match))))
+        .then(schemaInfos => schemaInfos.filter(({ fileMatch }) => fileMatch.some(match => minimatch(file.getBaseName(), match))))
         .then(matching => {
-          const promises = matching.map(schemaInfo => axios.get(schemaInfo.url)
-            .then(result => result.data)
-            .then(schema => new JsonSchemaProposalProvider(
-              schemaInfo.fileMatch,
-              new SchemaRoot(schema)
-            ))
-          )
+          const promises = matching.map(schemaInfo => resolve(schemaInfo.url).then(schema => new JsonSchemaProposalProvider(
+            schemaInfo.fileMatch,
+            wrap(schema)
+          )))
           return Promise.all(promises)
         })
         .then(providers => this.compoundProvier.addProviders(providers))

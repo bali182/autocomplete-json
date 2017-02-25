@@ -9,7 +9,7 @@ import isObject from 'lodash/isObject'
 import isArray from 'lodash/isArray'
 import values from 'lodash/values'
 
-import { anySchemaLoader, loadSchema } from './json-schema-loader'
+import { loadSchema } from './json-schema-loader'
 
 const updateSchema = node => schema => {
   // mutation, not pretty
@@ -40,7 +40,7 @@ const resolveDocument = (root, node) => {
 
   return uri.reference === 'same-document'
     ? Promise.resolve(updateSchema(node)(resolveInSameDocument(root, $ref.split('/'))))
-    : anySchemaLoader(uri).then(updateSchema(node))
+    : loadSchema($ref).then(updateSchema(node))
 }
 
 const findChildNodes = node => {
