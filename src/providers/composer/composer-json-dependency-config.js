@@ -5,7 +5,7 @@ import trimStart from 'lodash/trimStart'
 
 import { path, request } from '../../matchers'
 
-const {searchByName, versions} = require('packagist-package-lookup')
+import { searchByName, versions } from 'packagist-package-lookup'
 
 const DEPENDENCY_PROPERTIES = ['require', 'require-dev']
 

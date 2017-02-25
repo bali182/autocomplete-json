@@ -25,10 +25,10 @@ export const loadHttpSchema = uri => axios.get(uriJs.serialize(uri)).then(respon
 
 export const anySchemaLoader = uri => {
   switch (uri.scheme) {
-    case 'file': return loadFileSchema.load(uri)
-    case 'http': return loadHttpSchema.load(uri)
+    case 'file': return loadFileSchema(uri)
+    case 'http': return loadHttpSchema(uri)
     default: throw new Error(`Unknown URI format ${JSON.stringify(uri)}`)
   }
 }
 
-export const loadSchema = uri => anySchemaLoader.load(uriJs.parse(uri))
+export const loadSchema = uri => anySchemaLoader(uriJs.parse(uri))
