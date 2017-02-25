@@ -5,11 +5,11 @@ import isNil from 'lodash/isNil'
 import isEmpty from 'lodash/isEmpty'
 import assign from 'lodash/assign'
 import clone from 'lodash/clone'
-import isObject from 'lodash/isObject'
 import isArray from 'lodash/isArray'
 import values from 'lodash/values'
 
 import { loadSchema } from './json-schema-loader'
+import { schemaType, ALL_OF_TYPE, ANY_OF_TYPE, ONE_OF_TYPE, OBJECT_TYPE, ARRAY_TYPE } from './json-schema-types'
 
 const updateSchema = node => schema => {
   // mutation, not pretty
@@ -44,30 +44,21 @@ const resolveDocument = (root, node) => {
 }
 
 const findChildNodes = node => {
-  // mutation, not pretty
+  // mutation, not pretty but has to be done somewhere
   if (isArray(node.type)) {
     const childSchemas = node.type.map(type => assign(clone(node), { type }))
     delete node['type']
     node.oneOf = childSchemas
   }
 
-  if (!node.allOf && !node.anyOf && !node.oneOf) {
-    if (node.type === 'object' || (isObject(node.properties) && !node.type)) {
-      return values(node.properties || {})
-    } else if (node.type === 'array' || (isObject(node.items) && !node.type)) {
-      return [node.items]
-    }
+  switch (schemaType(node)) {
+    case ALL_OF_TYPE: return node.allOf
+    case ANY_OF_TYPE: return node.anyOf
+    case ONE_OF_TYPE: return node.oneOf
+    case OBJECT_TYPE: return values(node.properties || {})
+    case ARRAY_TYPE: return [node.items]
+    default: return []
   }
-
-  if (isArray(node.oneOf)) {
-    return node.oneOf
-  } else if (isArray(node.anyOf)) {
-    return node.anyOf
-  } else if (isArray(node.allOf)) {
-    return node.allOf
-  }
-
-  return []
 }
 
 const traverseResolve = (root, node) => {
@@ -79,7 +70,6 @@ const traverseResolve = (root, node) => {
   })
 }
 
-export const resolve = uri => {
-  return loadSchema(uri)
-    .then(root => traverseResolve(root, root).then(() => root))
-}
+export const resolve = uri => loadSchema(uri)
+  .then(root => traverseResolve(root, root).then(() => root))
+

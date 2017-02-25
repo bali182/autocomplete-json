@@ -1,42 +1,21 @@
 'use babel'
 
-import isArray from 'lodash/isArray'
-import isObject from 'lodash/isObject'
+import { schemaType, ALL_OF_TYPE, ANY_OF_TYPE, ARRAY_TYPE, BOOLEAN_TYPE, ENUM_TYPE, NULL_TYPE, NUMBER_TYPE, OBJECT_TYPE, ONE_OF_TYPE, STRING_TYPE } from './json-schema-types'
 
 export const wrap = (schema, parent = null) => {
-  if (!schema) {
-    console.warn(`${schema} schema found`)
-    return new AnySchema({}, parent)
+  switch (schemaType(schema)) {
+    case ALL_OF_TYPE: return new AllOfSchema(schema, parent)
+    case ANY_OF_TYPE: return new AnyOfSchema(schema, parent)
+    case ARRAY_TYPE: return new ArraySchema(schema, parent)
+    case BOOLEAN_TYPE: return new BooleanSchema(schema, parent)
+    case ENUM_TYPE: return new EnumSchema(schema, parent)
+    case NULL_TYPE: return new NullSchema(schema, parent)
+    case NUMBER_TYPE: return new NumberSchema(schema, parent)
+    case OBJECT_TYPE: return new ObjectSchema(schema, parent)
+    case ONE_OF_TYPE: return new OneOfSchema(schema, parent)
+    case STRING_TYPE: return new StringSchema(schema, parent)
+    default: return new AnySchema({}, parent)
   }
-
-  if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
-    if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
-      return new ObjectSchema(schema, parent)
-    } else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
-      return new ArraySchema(schema, parent)
-    }
-  }
-
-  if (isArray(schema.oneOf)) {
-    return new OneOfSchema(schema, parent)
-  } else if (isArray(schema.anyOf)) {
-    return new AnyOfSchema(schema, parent)
-  } else if (isArray(schema.allOf)) {
-    return new AllOfSchema(schema, parent)
-  } else if (isObject(schema.enum)) {
-    return new EnumSchema(schema, parent)
-  }
-
-  switch (schema.type) {
-    case 'boolean': return new BooleanSchema(schema, parent)
-    case 'number': return new NumberSchema(schema, parent)
-    case 'integer': return new NumberSchema(schema, parent)
-    case 'string': return new StringSchema(schema, parent)
-    case 'null': return new NullSchema(schema, parent)
-    default: break
-  }
-  console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
-  return new AnySchema({}, parent)
 }
 
 export class BaseSchema {
