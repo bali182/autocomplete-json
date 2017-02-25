@@ -13,8 +13,8 @@ import { schemaType, ALL_OF_TYPE, ANY_OF_TYPE, ONE_OF_TYPE, OBJECT_TYPE, ARRAY_T
 
 const updateSchema = node => schema => {
   // mutation, not pretty
-  assign(node, schema)
   delete node['$ref']
+  assign(node, schema)
 }
 
 const resolveInSameDocument = (schema, segments) => {
@@ -38,9 +38,15 @@ const resolveDocument = (root, node) => {
 
   const uri = uriJs.parse($ref)
 
-  return uri.reference === 'same-document'
-    ? Promise.resolve(updateSchema(node)(resolveInSameDocument(root, $ref.split('/'))))
-    : loadSchema($ref).then(updateSchema(node))
+  if (uri.reference === 'same-document') {
+    updateSchema(node)(resolveInSameDocument(root, $ref.split('/')))
+    return resolveDocument(root, node)
+  }
+
+  return loadSchema($ref)
+    .then(schema => resolveInSameDocument(schema, (uri.fragment || '').split('/')))
+    .then(updateSchema(node))
+    .then(() => node.$ref ? resolveDocument(root, node) : null)
 }
 
 const findChildNodes = node => {
@@ -56,7 +62,7 @@ const findChildNodes = node => {
     case ANY_OF_TYPE: return node.anyOf
     case ONE_OF_TYPE: return node.oneOf
     case OBJECT_TYPE: return values(node.properties || {})
-    case ARRAY_TYPE: return [node.items]
+    case ARRAY_TYPE: return [node.items || {}]
     default: return []
   }
 }

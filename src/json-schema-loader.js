@@ -6,6 +6,7 @@ import uriJs from 'uri-js'
 import axios from 'axios'
 import trimStart from 'lodash/trimStart'
 import memoize from 'lodash/memoize'
+import omit from 'lodash/omit'
 
 export const loadFileSchema = uri => new Promise((resolve, reject) => {
   const path = os.platform() === 'win32' ? trimStart(uri.path, '/') : uri.path
@@ -22,7 +23,10 @@ export const loadFileSchema = uri => new Promise((resolve, reject) => {
   })
 })
 
-export const loadHttpSchema = uri => axios.get(uriJs.serialize(uri)).then(response => response.data)
+export const loadHttpSchema = uri => {
+  const url = uriJs.serialize(omit(uri, ['fragment']))
+  return axios.get(url).then(response => response.data)
+}
 
 export const anySchemaLoader = uri => {
   switch (uri.scheme) {
