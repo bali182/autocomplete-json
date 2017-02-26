@@ -1,6 +1,5 @@
 'use babel'
 
-import { FileProposalProvider } from '../../file-proposal-provider'
 import { request, path, or } from '../../matchers'
 import { StorageType } from '../../utils'
 

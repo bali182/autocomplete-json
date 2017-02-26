@@ -1,18 +1,18 @@
 'use babel'
 
-import { SchemaRoot } from './json-schema'
 import { JsonSchemaProposalFactory } from './json-schema-proposal-factory'
-import { loadSchema } from './json-schema-loader'
+import { resolve } from './json-schema-resolver'
+import { wrap } from './json-schema'
 
 export class JsonSchemaProposalProvider {
-  constructor(filePattern, schemaRoot) {
+  constructor(filePattern, schema) {
     this.filePattern = filePattern
-    this.schemaRoot = schemaRoot
+    this.schema = schema
     this.proposalFactory = new JsonSchemaProposalFactory()
   }
 
   getProposals(request) {
-    return Promise.resolve(this.proposalFactory.createProposals(request, this.schemaRoot))
+    return Promise.resolve(this.proposalFactory.createProposals(request, this.schema))
   }
 
   getFilePattern() {
@@ -20,9 +20,9 @@ export class JsonSchemaProposalProvider {
   }
 
   static createFromProvider(schemaProvider) {
-    return loadSchema(schemaProvider.getSchemaURI()).then(schema => new JsonSchemaProposalProvider(
+    return resolve(schemaProvider.getSchemaURI()).then(schema => new JsonSchemaProposalProvider(
       schemaProvider.getFilePattern(),
-      new SchemaRoot(schema)
+      wrap(schema)
     ))
   }
 }

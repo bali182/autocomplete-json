@@ -6,7 +6,7 @@ import tokenizer2 from 'tokenizer2'
  * Copy pasted most of this from json-tokenizer package
  * https://github.com/Floby/node-json-tokenizer/blob/master/JsonTokenizer.js
  * 
- * @return a token stream describing the JSON grammar.
+ * @return {Stream} a token stream describing the JSON grammar.
  */
 function createTokenStream() {
   const stream = tokenizer2()
@@ -52,8 +52,8 @@ export const TokenType = {
 
 /**
  * Tokenizes the given buffer
- * @param buffer A Buffer to tokenize
- * @return a Promise, which when resolved yields the JSON tokens in the buffer as an array
+ * @param {Buffer} buffer A Buffer to tokenize
+ * @return {Promise} a Promise, which when resolved yields the JSON tokens in the buffer as an array
  */
 export function tokenize(buffer) {
   return new Promise((resolve, reject) => {
@@ -65,7 +65,7 @@ export function tokenize(buffer) {
         tokens.push(token)
       }
     })
-    tokenStream.on('error', error => reject(tokens))
+    tokenStream.on('error', error => reject(error))
     tokenStream.on('end', () => resolve(tokens))
     tokenStream.end(buffer)
   })

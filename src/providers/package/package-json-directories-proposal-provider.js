@@ -1,7 +1,6 @@
 'use babel'
 
-import { FileProposalProvider } from '../../file-proposal-provider'
-import { request, path, or } from '../../matchers'
+import { request, path } from '../../matchers'
 import { StorageType } from '../../utils'
 
 const MATCHER = request().value().path(path().key('directories').key())

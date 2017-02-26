@@ -1,99 +1,20 @@
 'use babel'
 
-import { assign, clone, isEmpty, isArray, isObject, memoize, flatten } from 'lodash'
-import { SchemaFlattenerVisitor, SchemaInspectorVisitor } from './json-schema-visitors'
+import { schemaType, ALL_OF_TYPE, ANY_OF_TYPE, ARRAY_TYPE, BOOLEAN_TYPE, ENUM_TYPE, NULL_TYPE, NUMBER_TYPE, OBJECT_TYPE, ONE_OF_TYPE, STRING_TYPE } from './json-schema-types'
 
-export class SchemaRoot {
-
-  getSchema() {
-    return this.schema
-  }
-
-  constructor(schemaRoot) {
-    this.schemaRoot = schemaRoot
-    this.resolveRef = memoize(path => {
-      const segments = path.split('/')
-      function resolveInternal(partialSchema, refSegments) {
-        if (isEmpty(refSegments)) {
-          return partialSchema
-        }
-        const [key, ...tail] = refSegments
-        if (key === '#') {
-          return resolveInternal(partialSchema, tail)
-        }
-        const subSchema = partialSchema[key]
-        return resolveInternal(subSchema, tail)
-      }
-      return resolveInternal(this.schemaRoot, segments)
-    })
-    this.schema = this.wrap(schemaRoot, null)
-  }
-
-  wrap(schema, parent) {
-    if (!schema) {
-      console.warn(`${schema} schema found`)
-      return new AnySchema({}, parent, this)
-    }
-
-    if (schema.$ref) {
-      schema = this.resolveRef(schema.$ref)
-    }
-
-    if (isArray(schema.type)) {
-      const childSchemas = schema.type.map(type => assign(clone(schema), { type }))
-      schema = {
-        oneOf: childSchemas
-      }
-    }
-
-    if (!schema.allOf && !schema.anyOf && !schema.oneOf) {
-      if (schema.type === 'object' || (isObject(schema.properties) && !schema.type)) {
-        return new ObjectSchema(schema, parent, this)
-      } else if (schema.type === 'array' || (isObject(schema.items) && !schema.type)) {
-        return new ArraySchema(schema, parent, this)
-      }
-    }
-
-    if (isArray(schema.oneOf)) {
-      return new OneOfSchema(schema, parent, this)
-    } else if (isArray(schema.anyOf)) {
-      return new AnyOfSchema(schema, parent, this)
-    } else if (isArray(schema.allOf)) {
-      return new AllOfSchema(schema, parent, this)
-    } else if (isObject(schema.enum)) {
-      return new EnumSchema(schema, parent, this)
-    }
-
-    switch (schema.type) {
-      case 'boolean': return new BooleanSchema(schema, parent, this)
-      case 'number': return new NumberSchema(schema, parent, this)
-      case 'integer': return new NumberSchema(schema, parent, this)
-      case 'string': return new StringSchema(schema, parent, this)
-      case 'null': return new NullSchema(schema, parent, this)
-    }
-    console.warn(`Illegal schema part: ${JSON.stringify(schema)}`)
-    return new AnySchema({}, parent, this)
-  }
-
-  getPossibleTypes(segments) {
-    if (segments.length === 0) {
-      return this.getExpandedSchemas(this.getSchema())
-    }
-    const visitor = new SchemaInspectorVisitor()
-    return segments.reduce((schemas, segment) => {
-      const resolvedNextSchemas = schemas.map(schema => this.getExpandedSchemas(schema))
-      const nextSchemas = flatten(resolvedNextSchemas).map(schema => schema.accept(visitor, segment))
-      return flatten(nextSchemas)
-    }, [this.getSchema()])
-  }
-
-  getExpandedSchemas(schema) {
-    if (schema instanceof CompositeSchema) {
-      const schemas = []
-      schema.accept(new SchemaFlattenerVisitor(), schemas)
-      return schemas
-    }
-    return [schema]
+export const wrap = (schema, parent = null) => {
+  switch (schemaType(schema)) {
+    case ALL_OF_TYPE: return new AllOfSchema(schema, parent)
+    case ANY_OF_TYPE: return new AnyOfSchema(schema, parent)
+    case ARRAY_TYPE: return new ArraySchema(schema, parent)
+    case BOOLEAN_TYPE: return new BooleanSchema(schema, parent)
+    case ENUM_TYPE: return new EnumSchema(schema, parent)
+    case NULL_TYPE: return new NullSchema(schema, parent)
+    case NUMBER_TYPE: return new NumberSchema(schema, parent)
+    case OBJECT_TYPE: return new ObjectSchema(schema, parent)
+    case ONE_OF_TYPE: return new OneOfSchema(schema, parent)
+    case STRING_TYPE: return new StringSchema(schema, parent)
+    default: return new AnySchema({}, parent)
   }
 }
 
@@ -140,12 +61,12 @@ export class ObjectSchema extends BaseSchema {
     const patternProperties = this.schema.patternProperties || {}
     this.keys = Object.keys(properties)
     this.properties = this.keys.reduce((object, key) => {
-      object[key] = this.getSchemaRoot().wrap(properties[key], this)
+      object[key] = wrap(properties[key], this)
       return object
     }, {})
     this.patternProperties = Object.keys(patternProperties)
       .map(key => [key, patternProperties[key]])
-      .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), this.getSchemaRoot().wrap(rawSchema, this)))
+      .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), wrap(rawSchema, this)))
   }
   getKeys() {
     return this.keys
@@ -180,7 +101,7 @@ export class ArraySchema extends BaseSchema {
 
   constructor(schema, parent, schemaRoot) {
     super(schema, parent, schemaRoot)
-    this.itemSchema = this.getSchemaRoot().wrap(this.schema.items, this)
+    this.itemSchema = wrap(this.schema.items, this)
   }
 
   getItemSchema() {
@@ -228,7 +149,7 @@ export class EnumSchema extends BaseSchema {
 export class CompositeSchema extends BaseSchema {
   constructor(schema, parent, schemaRoot, keyWord) {
     super(schema, parent, schemaRoot)
-    this.schemas = schema[keyWord].map(schema => this.getSchemaRoot().wrap(schema, this))
+    this.schemas = schema[keyWord].map(s => wrap(s, this))
   }
 
   getSchemas() {

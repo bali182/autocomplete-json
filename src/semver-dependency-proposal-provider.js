@@ -1,6 +1,7 @@
 'use babel'
 
-import { flatten, trimLeft, trim, startsWith } from 'lodash'
+import trimStart from 'lodash/trimStart'
+import startsWith from 'lodash/startsWith'
 
 function createDependencyProposal(request, dependency) {
   const {isBetweenQuotes, shouldAddComma} = request
@@ -12,7 +13,7 @@ function createDependencyProposal(request, dependency) {
   if (isBetweenQuotes) {
     proposal.text = dependency.name
   } else {
-    proposal.snippet = `"${ dependency.name }": "$1"${ shouldAddComma ? ',' : ''}`
+    proposal.snippet = `"${dependency.name}": "$1"${shouldAddComma ? ',' : ''}`
   }
   return proposal
 }
@@ -23,11 +24,11 @@ function createVersionProposal(request, version) {
   proposal.displayText = version
   proposal.rightLabel = 'version'
   proposal.type = 'value'
-  proposal.replacementPrefix = trimLeft(prefix, '~^<>="')
+  proposal.replacementPrefix = trimStart(prefix, '~^<>="')
   if (isBetweenQuotes) {
     proposal.text = version
   } else {
-    proposal.snippet = `"${ version }"${ shouldAddComma ? ',' : ''}`
+    proposal.snippet = `"${version}"${shouldAddComma ? ',' : ''}`
   }
   return proposal
 }
@@ -40,7 +41,6 @@ export class SemverDependencyProposalProvider {
   }
 
   getProposals(request) {
-    const {segments, isKeyPosition, isValuePosition} = request
     if (this.config.dependencyRequestMatcher().matches(request)) {
       return this.getDependencyKeysProposals(request)
     }
@@ -61,8 +61,8 @@ export class SemverDependencyProposalProvider {
 
   getDependencyVersionsProposals(request) {
     const {segments, prefix} = request
-    const [, packageName, ...rest] = segments
-    const trimmedPrefix = trimLeft(prefix, '~^<>="')
+    const [, packageName] = segments
+    const trimmedPrefix = trimStart(prefix, '~^<>="')
     return this.config.versions(packageName.toString()).then(versions =>
       versions.filter(version => startsWith(version, trimmedPrefix))
         .map(version => createVersionProposal(request, version))

@@ -1,8 +1,10 @@
 'use babel'
 
-import { trim } from 'lodash'
+import trim from 'lodash/trim'
 import { ArrayTraverser, PositionInfo, ValueHolder } from './utils'
 import { TokenType } from './tokenizer'
+
+const { STRING, NULL, SYMBOL, NUMBER, BEGIN_OBJECT, END_OBJECT, BEGIN_ARRAY, END_ARRAY, END_LABEL, COMMA } = TokenType
 
 function intersectsWithToken(position, token) {
   const tRow = token.line - 1
@@ -11,11 +13,11 @@ function intersectsWithToken(position, token) {
   const tLength = token.src.length
   const pCol = position.column
 
-  if (token.type === TokenType.STRING) {
+  if (token.type === STRING) {
     return tRow === pRow && tCol <= pCol && tCol + tLength - 1 > pCol // attention to ""
-  } 
+  }
   return tRow === pRow && tCol <= pCol && tCol + tLength > pCol
-  
+
 }
 
 function isBetweenTokenType(position, firstToken, secondToken) {
@@ -51,38 +53,39 @@ function consumeValue(tokens, container, position, posInfo, posInfoHolder) {
   }
 
   switch (valueStartToken.type) {
-    case TokenType.STRING:
+    case STRING:
       container.push(trim(valueStartToken.src, '"'))
       checkPosition()
       break
-    case TokenType.NULL:
+    case NULL:
       container.push(null)
       checkPosition()
       break
-    case TokenType.SYMBOL:
+    case SYMBOL:
       container.push(undefined)
       checkPosition()
       break
-    case TokenType.NUMBER:
+    case NUMBER:
       container.push(Number(valueStartToken.src))
       checkPosition()
       break
-    case TokenType.BEGIN_OBJECT:
+    case BEGIN_OBJECT:
       const object = {}
       consumeObject(object, tokens, position, posInfo, posInfoHolder)
       container.push(object)
       break
-    case TokenType.BEGIN_ARRAY:
+    case BEGIN_ARRAY:
       const array = []
       consumeArray(array, tokens, position, posInfo, posInfoHolder)
       container.push(array)
       break
+    default: break
   }
   return posInfo
 }
 
 function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
-  if (tokens.hasNext() && tokens.peekNext().type === TokenType.END_OBJECT) {
+  if (tokens.hasNext() && tokens.peekNext().type === END_OBJECT) {
     if (!posInfoHolder.hasValue() && isBetweenTokenType(position, tokens.current(), tokens.peekNext())) {
       const info = posInfo.setKeyPosition()
         .setPreviousToken(tokens.current())
@@ -103,7 +106,7 @@ function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
 
   const keyToken = tokens.next()
   // First token is not a key, skip it.
-  if (keyToken.type !== TokenType.STRING && keyToken.type !== TokenType.SYMBOL) {
+  if (keyToken.type !== STRING && keyToken.type !== SYMBOL) {
     return
   }
 
@@ -118,7 +121,7 @@ function consumeKeyValuePair(object, tokens, position, posInfo, posInfoHolder) {
 
   const key = trim(keyToken.src, '"')
   const separatorToken = tokens.next()
-  if (separatorToken.type === TokenType.END_LABEL) {
+  if (separatorToken.type === END_LABEL) {
     const pathWithKey = posInfo.add(key)
     if (!posInfoHolder.hasValue() && isBetweenTokenType(position, separatorToken, tokens.peekNext())) {
       const info = pathWithKey.setValuePosition()
@@ -144,8 +147,8 @@ function consumeObject(object, tokens, position, posInfo, posInfoHolder) {
     if (tokens.hasNext()) {
       const token = tokens.next()
       switch (token.type) {
-        case TokenType.END_OBJECT: return // end of object
-        case TokenType.COMMA: break // ',' read - nothing else to do
+        case END_OBJECT: return // end of object
+        case COMMA: break // ',' read - nothing else to do
         default: tokens.previous() // something else, go back
       }
     }
@@ -166,7 +169,7 @@ function consumeArray(array, tokens, position, posInfo, posInfoHolder) {
         posInfoHolder.set(info)
       }
       switch (token.type) {
-        case TokenType.END_ARRAY: return // end of array
+        case END_ARRAY: return // end of array
         default: tokens.previous() // something else, go back
       }
     }
@@ -188,8 +191,8 @@ function consumeArray(array, tokens, position, posInfo, posInfoHolder) {
         posInfoHolder.set(info)
       }
       switch (token.type) {
-        case TokenType.END_ARRAY: return // end of object
-        case TokenType.COMMA: break // ',' read - nothing else to do
+        case END_ARRAY: return // end of object
+        case COMMA: break // ',' read - nothing else to do
         default: tokens.previous() // something else, go back
       }
     }
@@ -205,11 +208,11 @@ export function provideStructure(tokensArray, position) {
 
   const posInfoHolder = new ValueHolder()
   const firstToken = tokens.next()
-  if (firstToken.type === TokenType.BEGIN_OBJECT) {
+  if (firstToken.type === BEGIN_OBJECT) {
     const object = {}
     consumeObject(object, tokens, position, new PositionInfo(), posInfoHolder)
     return { contents: object, positionInfo: posInfoHolder.getOrElse(null), tokens: tokensArray }
-  } else if (firstToken.type === TokenType.BEGIN_ARRAY) {
+  } else if (firstToken.type === BEGIN_ARRAY) {
     const array = []
     consumeArray(array, tokens, position, new PositionInfo(), posInfoHolder)
     return { contents: array, positionInfo: posInfoHolder.getOrElse(null), tokens: tokensArray }

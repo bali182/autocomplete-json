@@ -1,13 +1,14 @@
 'use babel'
 
+import isArray from 'lodash/isArray'
+import remove from 'lodash/remove'
+import { CompositeDisposable, Disposable } from 'atom'
+
 import RootProvider from './root-provider'
 import { JsonSchemaProposalProvider } from './json-schema-proposal-provider'
-import { isArray, remove } from 'lodash'
 import { defaultProviders, defaultSchemaProviders } from './providers'
 
-const {CompositeDisposable, Disposable} = require('atom')
-
-let PROVIDERS
+let PROVIDERS = null
 
 export function activate() {
   PROVIDERS = []
@@ -55,7 +56,7 @@ export function consumeJsonSchemaProviders(provider) {
 export function consumeJsonProposalProviders(provider) {
   const providers = (isArray(provider) ? provider : [provider]).filter(p => Boolean(p))
   providers.forEach(p => PROVIDERS.push(p))
-  return createCompositeDisposable(providers.map(provider => createSyncDisposable(provider)))
+  return createCompositeDisposable(providers.map(p => createSyncDisposable(p)))
 }
 
 export function dispose() {

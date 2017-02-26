@@ -1,8 +1,10 @@
 'use babel'
 
-import { isObject, isArray } from 'lodash'
+import isObject from 'lodash/isObject'
+import isArray from 'lodash/isArray'
+import isUndefined from 'lodash/isUndefined'
+
 import minimatch from 'minimatch'
-import axios from 'axios'
 
 export class ArrayTraverser {
 
@@ -23,11 +25,11 @@ export class ArrayTraverser {
     return this.array[this.index]
   }
 
-  peekNext(defaultValue = undefined) {
+  peekNext(defaultValue) {
     return this.hasNext() ? this.array[this.index + 1] : defaultValue
   }
 
-  peekPrevious(defaultValue = undefined) {
+  peekPrevious(defaultValue) {
     return this.hasPrevious() ? this.array[this.index - 1] : defaultValue
   }
 
@@ -123,7 +125,7 @@ export class ValueHolder {
     return this.value
   }
 
-  getOrElse(defaultValue = undefined) {
+  getOrElse(defaultValue) {
     return this.hasValue() ? this.get() : defaultValue
   }
 
@@ -132,7 +134,7 @@ export class ValueHolder {
   }
 
   hasValue() {
-    return this.value !== undefined
+    return !isUndefined(this.value)
   }
 }
 
@@ -149,7 +151,7 @@ export function resolveObject(segments, object) {
 
 function doMatches(pattern, file) {
   const path = pattern.indexOf('/') > -1 ? file.getRealPathSync() : file.getBaseName()
-  const search = process.platform == 'win32' ? pattern.replace(/\//g, '\\') : pattern
+  const search = process.platform === 'win32' ? pattern.replace(/\//g, '\\') : pattern
   return minimatch(path, search)
 }
 

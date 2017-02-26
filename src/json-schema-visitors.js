@@ -1,6 +1,6 @@
 'use babel'
 
-import { flatten } from 'lodash'
+import flatten from 'lodash/flatten'
 import { resolveObject } from './utils'
 import {
   ArraySchema, ObjectSchema, AnyOfSchema
@@ -11,12 +11,24 @@ export class DefaultSchemaVisitor {
   constructor(defaultVisit) {
     this.defaultVisit = defaultVisit
   }
+  // Complex schemas
   visitObjectSchema(schema, parameter) {
     return this.defaultVisit(schema, parameter)
   }
   visitArraySchema(schema, parameter) {
     return this.defaultVisit(schema, parameter)
   }
+  visitOneOfSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitAllOfSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+  visitAnyOfSchema(schema, parameter) {
+    return this.defaultVisit(schema, parameter)
+  }
+
+  // Simple schemas
   visitEnumSchema(schema, parameter) {
     return this.defaultVisit(schema, parameter)
   }
@@ -27,15 +39,6 @@ export class DefaultSchemaVisitor {
     return this.defaultVisit(schema, parameter)
   }
   visitBooleanSchema(schema, parameter) {
-    return this.defaultVisit(schema, parameter)
-  }
-  visitOneOfSchema(schema, parameter) {
-    return this.defaultVisit(schema, parameter)
-  }
-  visitAllOfSchema(schema, parameter) {
-    return this.defaultVisit(schema, parameter)
-  }
-  visitAnyOfSchema(schema, parameter) {
     return this.defaultVisit(schema, parameter)
   }
   visitNullSchema(schema, parameter) {
