@@ -1,6 +1,7 @@
 'use babel'
 
 import { schemaType, ALL_OF_TYPE, ANY_OF_TYPE, ARRAY_TYPE, BOOLEAN_TYPE, ENUM_TYPE, NULL_TYPE, NUMBER_TYPE, OBJECT_TYPE, ONE_OF_TYPE, STRING_TYPE } from './json-schema-types'
+import uniq from 'lodash/uniq'
 
 export const wrap = (schema, parent = null) => {
   switch (schemaType(schema)) {
@@ -19,22 +20,11 @@ export const wrap = (schema, parent = null) => {
 }
 
 export class BaseSchema {
-  constructor(schema, parent, schemaRoot) {
+  constructor(schema, parent) {
     this.schema = schema
     this.parent = parent
-    this.schemaRoot = schemaRoot
-  }
-
-  getParent() {
-    return this.parent
-  }
-
-  getSchemaRoot() {
-    return this.schemaRoot
-  }
-
-  getDescription() {
-    return this.schema.description
+    this.description = this.schema.description
+    this.defaultValue = this.schema['default']
   }
 }
 
@@ -43,53 +33,21 @@ export class PatternProperty {
     this.pattern = pattern
     this.schema = schema
   }
-
-  getPattern() {
-    return this.pattern
-  }
-
-  getSchema() {
-    return this.schema
-  }
 }
 
 export class ObjectSchema extends BaseSchema {
-
-  constructor(schema, parent, schemaRoot) {
-    super(schema, parent, schemaRoot)
+  constructor(schema, parent) {
+    super(schema, parent)
     const properties = this.schema.properties || {}
-    const patternProperties = this.schema.patternProperties || {}
     this.keys = Object.keys(properties)
     this.properties = this.keys.reduce((object, key) => {
       object[key] = wrap(properties[key], this)
       return object
     }, {})
-    this.patternProperties = Object.keys(patternProperties)
-      .map(key => [key, patternProperties[key]])
+    this.patternProperties = Object.keys(this.schema.patternProperties || {})
+      .map(key => [key, this.schema.patternProperties[key]])
       .map(([pattern, rawSchema]) => new PatternProperty(new RegExp(pattern, 'g'), wrap(rawSchema, this)))
-  }
-  getKeys() {
-    return this.keys
-  }
-
-  getProperty(name) {
-    return this.properties[name] || null
-  }
-
-  getProperties() {
-    return this.properties
-  }
-
-  getPatternProperties() {
-    return this.patternProperties
-  }
-
-  getDefaultValue() {
-    return this.schema['default'] || null
-  }
-
-  getDisplayType() {
-    return 'object'
+    this.displayType = 'object'
   }
 
   accept(visitor, parameter) {
@@ -98,76 +56,43 @@ export class ObjectSchema extends BaseSchema {
 }
 
 export class ArraySchema extends BaseSchema {
-
-  constructor(schema, parent, schemaRoot) {
-    super(schema, parent, schemaRoot)
+  constructor(schema, parent) {
+    super(schema, parent)
     this.itemSchema = wrap(this.schema.items, this)
-  }
-
-  getItemSchema() {
-    return this.itemSchema
-  }
-
-  getDefaultValue() {
-    return this.schema['default'] || null
+    this.unique = Boolean(this.schema.uniqueItems || false)
+    const itemDisplayType = this.itemSchema && this.itemSchema.displayType ? this.itemSchema.displayType : 'any'
+    this.displayType = uniq(itemDisplayType.split('|').map(t => `${t.trim()}[]`)).join(' | ')
   }
 
   accept(visitor, parameter) {
     return visitor.visitArraySchema(this, parameter)
   }
-
-  hasUniqueItems() {
-    return Boolean(this.schema.uniqueItems || false)
-  }
-
-  getDisplayType() {
-    const itemSchemaType = this.getItemSchema() && this.getItemSchema().getDisplayType()
-      ? this.getItemSchema().getDisplayType()
-      : 'any'
-    return itemSchemaType.split('|').map(t => `${t.trim()}[]`).join(' | ')
-  }
 }
 
 export class EnumSchema extends BaseSchema {
-  getValues() {
-    return this.schema.enum
-  }
-
-  getDefaultValue() {
-    return this.schema['default'] || null
+  constructor(schema, parent) {
+    super(schema, parent)
+    this.values = this.schema.enum
+    this.displayType = 'enum'
   }
 
   accept(visitor, parameter) {
     return visitor.visitEnumSchema(this, parameter)
   }
-
-  getDisplayType() {
-    return 'enum'
-  }
 }
 
 export class CompositeSchema extends BaseSchema {
-  constructor(schema, parent, schemaRoot, keyWord) {
-    super(schema, parent, schemaRoot)
+  constructor(schema, parent, keyWord) {
+    super(schema, parent)
     this.schemas = schema[keyWord].map(s => wrap(s, this))
-  }
-
-  getSchemas() {
-    return this.schemas
-  }
-
-  getDefaultValue() {
-    return null
-  }
-
-  getDisplayType() {
-    return this.getSchemas().map(s => s.getDisplayType()).join(' | ')
+    this.defaultValue = null
+    this.displayType = uniq(this.schemas.map(s => s.displayType)).join(' | ')
   }
 }
 
 export class AnyOfSchema extends CompositeSchema {
-  constructor(schema, parent, schemaRoot) {
-    super(schema, parent, schemaRoot, 'anyOf')
+  constructor(schema, parent) {
+    super(schema, parent, 'anyOf')
   }
 
   accept(visitor, parameter) {
@@ -176,8 +101,8 @@ export class AnyOfSchema extends CompositeSchema {
 }
 
 export class AllOfSchema extends CompositeSchema {
-  constructor(schema, parent, schemaRoot) {
-    super(schema, parent, schemaRoot, 'allOf')
+  constructor(schema, parent) {
+    super(schema, parent, 'allOf')
   }
 
   accept(visitor, parameter) {
@@ -186,8 +111,8 @@ export class AllOfSchema extends CompositeSchema {
 }
 
 export class OneOfSchema extends CompositeSchema {
-  constructor(schema, parent, schemaRoot) {
-    super(schema, parent, schemaRoot, 'oneOf')
+  constructor(schema, parent) {
+    super(schema, parent, 'oneOf')
   }
 
   accept(visitor, parameter) {
@@ -196,71 +121,61 @@ export class OneOfSchema extends CompositeSchema {
 }
 
 export class NullSchema extends BaseSchema {
+  constructor(schema, parent) {
+    super(schema, parent)
+    this.defaultValue = null
+    this.displayType = 'null'
+  }
+
   accept(visitor, parameter) {
     return visitor.visitNullSchema(this, parameter)
-  }
-
-  getDefaultValue() {
-    return null
-  }
-
-  getDisplayType() {
-    return 'null'
   }
 }
 
 export class StringSchema extends BaseSchema {
+  constructor(schema, parent) {
+    super(schema, parent)
+    this.displayType = 'string'
+    this.defaultValue = this.defaultValue || ''
+  }
+
   accept(visitor, parameter) {
     return visitor.visitStringSchema(this, parameter)
-  }
-
-  getDefaultValue() {
-    return this.schema['default'] || null
-  }
-
-  getDisplayType() {
-    return 'string'
   }
 }
 
 export class NumberSchema extends BaseSchema {
+  constructor(schema, parent) {
+    super(schema, parent)
+    this.displayType = 'number'
+    this.defaultValue = this.defaultValue || 0
+  }
+
   accept(visitor, parameter) {
     return visitor.visitNumberSchema(this, parameter)
-  }
-
-  getDefaultValue() {
-    return this.schema['default'] || null
-  }
-
-  getDisplayType() {
-    return 'number'
   }
 }
 
 export class BooleanSchema extends BaseSchema {
+  constructor(schema, parent) {
+    super(schema, parent)
+    this.displayType = 'boolean'
+    this.defaultValue = this.defaultValue || false
+  }
+
   accept(visitor, parameter) {
     return visitor.visitBooleanSchema(this, parameter)
-  }
-
-  getDefaultValue() {
-    return this.schema['default'] || null
-  }
-
-  getDisplayType() {
-    return 'boolean'
   }
 }
 
 export class AnySchema extends BaseSchema {
+  constructor(schema, parent) {
+    super(schema, parent)
+    this.displayType = 'any'
+    this.defaultValue = null
+  }
+
   accept(visitor, parameter) {
     return visitor.visitAnySchema(this, parameter)
-  }
-
-  getDefaultValue() {
-    return null
-  }
-
-  getDisplayType() {
-    return 'any'
   }
 }

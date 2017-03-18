@@ -2,9 +2,7 @@
 
 import flatten from 'lodash/flatten'
 import { resolveObject } from './utils'
-import {
-  ArraySchema, ObjectSchema, AnyOfSchema
-} from './json-schema'
+import { ArraySchema, ObjectSchema, AnyOfSchema } from './json-schema'
 
 /** Base implementation for JSON schema visitor. Applies the parameter function as all non-overwritten methods. */
 export class DefaultSchemaVisitor {
@@ -57,29 +55,29 @@ export class SchemaInspectorVisitor extends DefaultSchemaVisitor {
   }
 
   visitObjectSchema(schema, segment) {
-    const childSchema = schema.getProperty(segment)
+    const childSchema = schema.properties[segment]
     if (childSchema) {
       return [childSchema]
     }
-    return schema.getPatternProperties()
-      .filter(p => p.getPattern().test(segment))
-      .map(p => p.getSchema())
+    return schema.patternProperties
+      .filter(({ pattern }) => pattern.test(segment))
+      .map(p => p.schema)
   }
 
   visitArraySchema(schema) {
-    return [schema.getItemSchema()]
+    return [schema.itemSchema]
   }
 
   visitOneOfSchema(schema, segment) {
-    return flatten(schema.getSchemas().map(s => s.accept(this, segment)))
+    return flatten(schema.schemas.map(s => s.accept(this, segment)))
   }
 
   visitAllOfSchema(schema, segment) {
-    return flatten(schema.getSchemas().map(s => s.accept(this, segment)))
+    return flatten(schema.schemas.map(s => s.accept(this, segment)))
   }
 
   visitAnyOfSchema(schema, segment) {
-    return flatten(schema.getSchemas().map(s => s.accept(this, segment)))
+    return flatten(schema.schemas.map(s => s.accept(this, segment)))
   }
 }
 
@@ -90,15 +88,15 @@ export class SchemaFlattenerVisitor extends DefaultSchemaVisitor {
   }
 
   visitOneOfSchema(schema, collector) {
-    schema.getSchemas().forEach(childSchema => childSchema.accept(this, collector))
+    schema.schemas.forEach(childSchema => childSchema.accept(this, collector))
   }
 
   visitAllOfSchema(schema, collector) {
-    schema.getSchemas().forEach(childSchema => childSchema.accept(this, collector))
+    schema.schemas.forEach(childSchema => childSchema.accept(this, collector))
   }
 
   visitAnyOfSchema(schema, collector) {
-    schema.getSchemas().forEach(childSchema => childSchema.accept(this, collector))
+    schema.schemas.forEach(childSchema => childSchema.accept(this, collector))
   }
 }
 
@@ -113,9 +111,9 @@ export class SnippetProposalVisitor extends DefaultSchemaVisitor {
   }
 
   visitStringLike(schema, request) {
-    const {isBetweenQuotes} = request
+    const { isBetweenQuotes } = request
     const q = isBetweenQuotes ? '' : '"'
-    return `${q}\${1:${schema.getDefaultValue() || ''}}${q}${this.comma(request)}`
+    return `${q}\${1:${schema.defaultValue || ''}}${q}${this.comma(request)}`
   }
 
   visitStringSchema(schema, request) {
@@ -125,13 +123,13 @@ export class SnippetProposalVisitor extends DefaultSchemaVisitor {
   visitNumberSchema(schema, request) {
     return request.isBetweenQuotes
       ? this.defaultVisit(schema, request)
-      : `\${1:${schema.getDefaultValue() || '0'}}${this.comma(request)}`
+      : `\${1:${schema.defaultValue || '0'}}${this.comma(request)}`
   }
 
   visitBooleanSchema(schema, request) {
     return request.isBetweenQuotes
       ? this.defaultVisit(schema, request)
-      : `\${1:${schema.getDefaultValue() || 'false'}}${this.comma(request)}`
+      : `\${1:${schema.defaultValue || 'false'}}${this.comma(request)}`
   }
 
   visitNullSchema(schema, request) {
@@ -169,8 +167,8 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor {
 
   createBaseProposalFor(schema) {
     return {
-      description: schema.getDescription(),
-      rightLabel: schema.getDisplayType(),
+      description: schema.description,
+      rightLabel: schema.displayType,
       type: 'value'
     }
   }
@@ -194,7 +192,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor {
       return []
     }
     const proposal = this.createBaseProposalFor(schema)
-    proposal.displayText = schema.getDefaultValue() ? `"${schema.getDefaultValue()}"` : '""'
+    proposal.displayText = schema.defaultValue ? `"${schema.defaultValue}"` : '""'
     proposal.snippet = schema.accept(this.snippetVisitor, request)
     return [proposal]
   }
@@ -204,7 +202,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor {
       return []
     }
     const proposal = this.createBaseProposalFor(schema)
-    proposal.displayText = schema.getDefaultValue() ? `${schema.getDefaultValue()}` : '0'
+    proposal.displayText = schema.defaultValue ? `${schema.defaultValue}` : '0'
     proposal.snippet = schema.accept(this.snippetVisitor, request)
     return [proposal]
   }
@@ -226,17 +224,16 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor {
       return []
     }
     const proposal = this.createBaseProposalFor(schema)
-    proposal.displayText = schema.getDefaultValue() ? `${schema.getDefaultValue()}` : 'null'
+    proposal.displayText = schema.defaultValue ? `${schema.defaultValue}` : 'null'
     proposal.snippet = schema.accept(this.snippetVisitor, request)
     return [proposal]
   }
 
   visitEnumSchema(schema, request) {
-    const {segments, contents} = request
-    const parent = schema.getParent()
-    let possibleValues = schema.getValues()
+    const { segments, contents } = request
+    let possibleValues = schema.values
 
-    if ((parent instanceof ArraySchema) && parent.hasUniqueItems()) {
+    if ((schema.parent instanceof ArraySchema) && schema.parent.hasUniqueItems()) {
       const alreadyPresentValues = resolveObject(segments.slice(0, segments.length - 1), contents) || []
       possibleValues = possibleValues.filter(value => alreadyPresentValues.indexOf(value) < 0)
     }
@@ -254,7 +251,7 @@ export class ValueProposalVisitor extends DefaultSchemaVisitor {
   }
 
   visitCompositeSchema(schema, request) {
-    return flatten(schema.getSchemas()
+    return flatten(schema.schemas
       .filter(s => !(s instanceof AnyOfSchema))
       .map(s => s.accept(this, request).filter(r => r.snippet !== SnippetProposalVisitor.DEFAULT))
     )
@@ -283,21 +280,21 @@ export class KeyProposalVisitor extends DefaultSchemaVisitor {
   }
 
   visitObjectSchema(schema, request) {
-    const {prefix, isBetweenQuotes} = request
-    return schema.getKeys()
+    const { prefix, isBetweenQuotes } = request
+    return schema.keys
       .filter(key => !this.unwrappedContents || (key.indexOf(prefix) >= 0 && !this.unwrappedContents.hasOwnProperty(key)))
       .map(key => {
-        const valueSchema = schema.getProperty(key)
+        const valueSchema = schema.properties[key]
         const proposal = {}
 
-        proposal.description = valueSchema.getDescription()
+        proposal.description = valueSchema.description
         proposal.type = 'property'
         proposal.displayText = key
-        proposal.rightLabel = valueSchema.getDisplayType()
+        proposal.rightLabel = valueSchema.displayType
         if (isBetweenQuotes) {
           proposal.text = key
         } else {
-          const value = schema.getProperty(key).accept(this.snippetVisitor, request)
+          const value = schema.properties[key].accept(this.snippetVisitor, request)
           proposal.snippet = `"${key}": ${value}`
         }
         return proposal
@@ -305,7 +302,7 @@ export class KeyProposalVisitor extends DefaultSchemaVisitor {
   }
 
   visitCompositeSchema(schema, request) {
-    const proposals = schema.getSchemas()
+    const proposals = schema.schemas
       .filter(s => s instanceof ObjectSchema)
       .map(s => s.accept(this, request))
     return flatten(proposals)
