@@ -90,7 +90,7 @@ export default class RootProvider {
   }
 
   getMatchingProviders(file) {
-    return this.providers.filter(p => matches(file, p.getFilePattern()))
+    return this.providers.filter(p => matches(file, p.getFilePattern()) || p.getFilePattern() === '*')
   }
 
   onDidInsertSuggestion() {
