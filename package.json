@@ -66,5 +66,9 @@
   },
   "scripts": {
     "lint": "eslint src/** --config .eslintrc"
-  }
+  },
+  "activationHooks": [
+    "language-json:grammar-used",
+    "language-json-comments:grammar-used"
+  ]
 }
