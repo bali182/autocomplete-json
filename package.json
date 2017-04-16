@@ -28,7 +28,7 @@
     "packagist-package-lookup": "^1.0.0",
     "query-string": "^3.0.0",
     "tokenizer2": "^1.2.0",
-    "uri-js": "^2.1.1",
+    "uri-js": "^3.0.0",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
