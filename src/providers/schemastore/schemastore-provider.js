@@ -18,7 +18,7 @@ export default class SchemaStoreProvider {
     if (this.schemaInfos) {
       return Promise.resolve(this.schemaInfos)
     }
-    return axios.get('http://schemastore.org/api/json/catalog.json')
+    return axios.get('http://schemastore.org/api/json/catalog.json', { headers: { 'Cache-Control': 'no-cache' } })
       .then(response => response.data)
       .then(data => data.schemas.filter(schema => Boolean(schema.fileMatch)))
       .then(schemaInfos => {
