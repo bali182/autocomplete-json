@@ -29,7 +29,8 @@
     "query-string": "^3.0.0",
     "tokenizer2": "^1.2.0",
     "uri-js": "^3.0.0",
-    "valid-url": "^1.0.9"
+    "valid-url": "^1.0.9",
+    "snyk": "^1.189.0"
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
@@ -65,10 +66,13 @@
     }
   },
   "scripts": {
-    "lint": "eslint src/** --config .eslintrc"
+    "lint": "eslint src/** --config .eslintrc",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "activationHooks": [
     "language-json:grammar-used",
     "language-json-comments:grammar-used"
-  ]
+  ],
+  "snyk": true
 }
