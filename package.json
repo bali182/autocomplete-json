@@ -22,7 +22,7 @@
     "axios": "^0.15.3",
     "file-url": "^1.1.0",
     "jaro-winkler": "^0.2.6",
-    "lodash": "4.17.11",
+    "lodash": "4.17.20",
     "minimatch": "^3.0.0",
     "npm-package-lookup": "^1.0.0",
     "packagist-package-lookup": "^1.0.0",
