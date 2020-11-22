@@ -32,6 +32,7 @@ export const anySchemaLoader = uri => {
   switch (uri.scheme) {
     case 'file': return loadFileSchema(uri)
     case 'http': return loadHttpSchema(uri)
+    case 'https': return loadHttpSchema(uri)
     default: throw new Error(`Unknown URI format ${JSON.stringify(uri)}`)
   }
 }
