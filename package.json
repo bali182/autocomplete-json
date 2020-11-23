@@ -19,21 +19,18 @@
   },
   "homepage": "https://github.com/bali182/autocomplete-json#readme",
   "dependencies": {
-    "axios": "^0.15.3",
-    "file-url": "^1.1.0",
-    "jaro-winkler": "^0.2.6",
-    "lodash": "4.17.11",
-    "minimatch": "^3.0.0",
+    "lodash": "^4.17.20",
+    "minimatch": "^3.0.4",
     "npm-package-lookup": "^1.0.0",
     "packagist-package-lookup": "^1.0.0",
-    "query-string": "^3.0.0",
-    "tokenizer2": "^1.2.0",
-    "uri-js": "^3.0.0",
-    "valid-url": "^1.0.9"
+    "tokenizer2": "^2.0.1",
+    "uri-js": "^4.4.0"
   },
   "devDependencies": {
-    "babel-eslint": "^7.1.1",
-    "eslint": "^3.16.0"
+    "@semantic-release/apm-config": "^8.0.0",
+    "atom-jasmine3-test-runner": "^5.1.8",
+    "eslint": "^7.14.0",
+    "semantic-release": "^17.3.0"
   },
   "providedServices": {
     "autocomplete.provider": {
@@ -65,8 +62,10 @@
     }
   },
   "scripts": {
-    "lint": "eslint src/** --config .eslintrc"
+    "test": "atom --test ./spec",
+    "lint": "eslint ."
   },
+  "atomTestRunner": "atom-jasmine3-test-runner",
   "activationHooks": [
     "language-json:grammar-used",
     "language-json-comments:grammar-used"

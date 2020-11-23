@@ -3,7 +3,6 @@
 import fs from 'fs'
 import os from 'os'
 import * as uriJs from 'uri-js'
-import axios from 'axios'
 import trimStart from 'lodash/trimStart'
 import memoize from 'lodash/memoize'
 import omit from 'lodash/omit'
@@ -25,7 +24,7 @@ export const loadFileSchema = uri => new Promise((resolve, reject) => {
 
 export const loadHttpSchema = uri => {
   const url = uriJs.serialize(omit(uri, ['fragment']))
-  return axios.get(url).then(response => response.data)
+  return fetch(url).then(response => response.json())
 }
 
 export const anySchemaLoader = uri => {
