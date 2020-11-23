@@ -1,6 +1,7 @@
 'use babel'
 
 import flatten from 'lodash/flatten'
+import has from 'lodash/has'
 import { resolveObject } from './utils'
 import { ArraySchema, ObjectSchema, AnyOfSchema } from './json-schema'
 
@@ -282,7 +283,7 @@ export class KeyProposalVisitor extends DefaultSchemaVisitor {
   visitObjectSchema(schema, request) {
     const { prefix, isBetweenQuotes } = request
     return schema.keys
-      .filter(key => !this.unwrappedContents || (key.indexOf(prefix) >= 0 && !this.unwrappedContents.hasOwnProperty(key)))
+      .filter(key => !this.unwrappedContents || (key.indexOf(prefix) >= 0 && !has(this.unwrappedContents, key)))
       .map(key => {
         const valueSchema = schema.properties[key]
         const proposal = {}

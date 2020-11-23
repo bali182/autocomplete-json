@@ -1,7 +1,6 @@
 'use babel'
 
 import minimatch from 'minimatch'
-import axios from 'axios'
 
 import { JsonSchemaProposalProvider } from '../../json-schema-proposal-provider'
 import { CompoundProposalProvider } from './compound-provider'
@@ -14,17 +13,13 @@ export default class SchemaStoreProvider {
     this.blackList = {}
   }
 
-  getSchemaInfos() {
-    if (this.schemaInfos) {
-      return Promise.resolve(this.schemaInfos)
+  async getSchemaInfos() {
+    if (!this.schemaInfos) {
+      const response = await fetch('http://schemastore.org/api/json/catalog.json', { headers: { 'Cache-Control': 'no-cache' } })
+      const data = await response.json()
+      this.schemaInfos = data.schemas.filter(schema => Boolean(schema.fileMatch))
     }
-    return axios.get('http://schemastore.org/api/json/catalog.json', { headers: { 'Cache-Control': 'no-cache' } })
-      .then(response => response.data)
-      .then(data => data.schemas.filter(schema => Boolean(schema.fileMatch)))
-      .then(schemaInfos => {
-        this.schemaInfos = schemaInfos
-        return schemaInfos
-      })
+    return this.schemaInfos
   }
 
   getProposals(request) {

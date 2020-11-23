@@ -1,22 +1,19 @@
 {
   "env": {
     "es6": true,
+    "node": true,
     "browser": true,
-    "jest": true
+    "jasmine": true,
+    "atomtest": true,
   },
   "extends": "eslint:recommended",
   "parserOptions": {
+    "ecmaVersion": 2018,
     "sourceType": "module"
   },
   "globals": {
-    "document": true,
-    "window": true,
-    "require": true,
-    "module": true,
-    "__dirname": true,
-    "process": true
+    "atom": "readonly",
   },
-  "parser": "babel-eslint",
   "rules": {
     "no-console": "off",
     "no-case-declarations": "off",

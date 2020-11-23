@@ -1,6 +1,7 @@
 'use babel'
 
 import assign from 'lodash/assign'
+import has from 'lodash/has'
 import { search, versions } from 'npm-package-lookup'
 
 import { path, request } from '../../matchers'
@@ -41,6 +42,6 @@ export default {
     }
     const objects = DEPENDENCY_PROPERTIES.map(prop => contents[prop] || {})
     const merged = assign(...objects) || {}
-    return dependency => !merged.hasOwnProperty(dependency)
+    return dependency => !has(merged, dependency)
   }
 }
