@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import assign from 'lodash/assign'
 import trimStart from 'lodash/trimStart'

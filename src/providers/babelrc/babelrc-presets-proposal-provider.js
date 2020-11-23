@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import startsWith from 'lodash/startsWith'
 import { path, request } from '../../matchers'

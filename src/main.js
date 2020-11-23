@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import isArray from 'lodash/isArray'
 import remove from 'lodash/remove'

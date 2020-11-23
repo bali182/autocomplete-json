@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import includes from 'lodash/includes'
 import trimStart from 'lodash/trimStart'

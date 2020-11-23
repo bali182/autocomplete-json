@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import tokenizer2 from 'tokenizer2'
 

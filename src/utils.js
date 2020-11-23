@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import isObject from 'lodash/isObject'
 import isArray from 'lodash/isArray'
@@ -164,4 +164,3 @@ export const StorageType = {
   FOLDER: 'FOLDER',
   BOTH: 'BOTH'
 }
-

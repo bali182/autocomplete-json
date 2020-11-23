@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import { JsonSchemaProposalFactory } from './json-schema-proposal-factory'
 import { resolve } from './json-schema-resolver'

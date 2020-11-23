@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import { FileProposalProvider } from './file-proposal-provider'
 import { SemverDependencyProposalProvider } from './semver-dependency-proposal-provider'

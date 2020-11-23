@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import { request, path, or } from '../../matchers'
 import { StorageType } from '../../utils'

@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import isNumber from 'lodash/isNumber'
 import isString from 'lodash/isString'

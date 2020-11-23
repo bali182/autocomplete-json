@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import minimatch from 'minimatch'
 

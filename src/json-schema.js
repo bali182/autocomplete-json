@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import { schemaType, ALL_OF_TYPE, ANY_OF_TYPE, ARRAY_TYPE, BOOLEAN_TYPE, ENUM_TYPE, NULL_TYPE, NUMBER_TYPE, OBJECT_TYPE, ONE_OF_TYPE, STRING_TYPE } from './json-schema-types'
 import uniq from 'lodash/uniq'

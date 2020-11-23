@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import * as uriJs from 'uri-js'
 import isNil from 'lodash/isNil'

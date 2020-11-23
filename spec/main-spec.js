@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 // import pakage from '../src/main'
 

@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import isEmpty from 'lodash/isEmpty'
 import trimStart from 'lodash/trimStart'

@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import assign from 'lodash/assign'
 import has from 'lodash/has'

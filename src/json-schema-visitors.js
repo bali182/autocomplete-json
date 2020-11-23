@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import flatten from 'lodash/flatten'
 import has from 'lodash/has'

@@ -1,4 +1,4 @@
-'use babel'
+/** @babel */
 
 import trim from 'lodash/trim'
 import { ArrayTraverser, PositionInfo, ValueHolder } from './utils'
