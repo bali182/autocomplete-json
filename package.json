@@ -1,7 +1,7 @@
 {
   "name": "autocomplete-json",
   "main": "./src/main",
-  "version": "5.5.3",
+  "version": "5.5.4",
   "description": "Atom autocomplete+ plugin for semantic JSON completions",
   "repository": {
     "type": "git",
