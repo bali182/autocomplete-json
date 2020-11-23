@@ -44,25 +44,25 @@ jobs:
       - name: Lint ✨
         run: npm run lint
 
-  Release:
-    needs: [Test, Lint]
-    if: |
-      github.ref == 'refs/heads/master' &&
-      github.event.repository.fork == false
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: UziTech/action-setup-atom@v1
-      - uses: actions/setup-node@v2.1.2
-        with:
-          node-version: '12.x'
-      - name: NPM install
-        run: npm ci
-      - name: Release 🎉
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ATOM_ACCESS_TOKEN: ${{ secrets.ATOM_ACCESS_TOKEN }}
-        run: npx semantic-release
+  # Release:
+  #   needs: [Test, Lint]
+  #   if: |
+  #     github.ref == 'refs/heads/master' &&
+  #     github.event.repository.fork == false
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: UziTech/action-setup-atom@v1
+  #     - uses: actions/setup-node@v2.1.2
+  #       with:
+  #         node-version: '12.x'
+  #     - name: NPM install
+  #       run: npm ci
+  #     - name: Release 🎉
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         ATOM_ACCESS_TOKEN: ${{ secrets.ATOM_ACCESS_TOKEN }}
+  #       run: npx semantic-release
 
   Skip:
     if: contains(github.event.head_commit.message, '[skip ci]')
