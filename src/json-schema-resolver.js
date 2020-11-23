@@ -1,6 +1,6 @@
 'use babel'
 
-import uriJs from 'uri-js'
+import * as uriJs from 'uri-js'
 import isNil from 'lodash/isNil'
 import isEmpty from 'lodash/isEmpty'
 import assign from 'lodash/assign'
@@ -78,4 +78,3 @@ const traverseResolve = (root, node) => {
 
 export const resolve = uri => loadSchema(uri)
   .then(root => traverseResolve(root, root).then(() => root))
-

@@ -2,7 +2,7 @@
 
 import fs from 'fs'
 import os from 'os'
-import uriJs from 'uri-js'
+import * as uriJs from 'uri-js'
 import axios from 'axios'
 import trimStart from 'lodash/trimStart'
 import memoize from 'lodash/memoize'
