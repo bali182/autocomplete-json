@@ -24,7 +24,7 @@
     "npm-package-lookup": "^1.0.0",
     "packagist-package-lookup": "^1.0.0",
     "tokenizer2": "^2.0.1",
-    "uri-js": "^4.4.0"
+    "uri-js": "^4.4.1"
   },
   "devDependencies": {
     "@semantic-release/apm-config": "^8.0.0",
