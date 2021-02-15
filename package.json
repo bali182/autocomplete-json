@@ -30,7 +30,7 @@
     "@semantic-release/apm-config": "^8.0.0",
     "atom-jasmine3-test-runner": "^5.1.8",
     "eslint": "^7.19.0",
-    "semantic-release": "^17.3.8"
+    "semantic-release": "^17.3.9"
   },
   "providedServices": {
     "autocomplete.provider": {
