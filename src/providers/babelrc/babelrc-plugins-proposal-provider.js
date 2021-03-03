@@ -3,7 +3,7 @@
 import startsWith from 'lodash/startsWith'
 
 import { path, request } from '../../matchers'
-import { search } from 'npm-package-lookup'
+import { search } from '../../npm-package-lookup'
 
 const PLUGINS = 'plugins'
 const BABEL_PLUGIN = 'babel-plugin-'
@@ -16,7 +16,7 @@ export default class BabelRCPluginsProposalProvider {
     if (PRESET_MATCHER.matches(req)) {
       const plugins = contents[PLUGINS] || []
       const results = search(this.calculateSearchKeyword(prefix))
-      return results.then(names => names.filter(name => plugins.indexOf(name.replace(BABEL_PLUGIN, '')) < 0).map(pluginName => {
+      return results.then(result => result.map(r => r.name).filter(name => plugins.indexOf(name.replace(BABEL_PLUGIN, '')) < 0).map(pluginName => {
         const name = pluginName.replace(BABEL_PLUGIN, '')
         const proposal = {}
         proposal.displayText = name
