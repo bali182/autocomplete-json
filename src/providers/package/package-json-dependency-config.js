@@ -16,7 +16,7 @@ export default {
   },
 
   search(prefix) {
-    return search(prefix).then(results => results.map(result => ({ name: result.name })))
+    return search(prefix).then(results => results.map(result => ({ name: result.name, description: result.description })))
   },
 
   dependencyRequestMatcher() {
