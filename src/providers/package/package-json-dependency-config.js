@@ -2,7 +2,7 @@
 
 import assign from 'lodash/assign'
 import has from 'lodash/has'
-import { search, versions } from 'npm-package-lookup'
+import { search, versions } from '../../npm-package-lookup'
 
 import { path, request } from '../../matchers'
 
@@ -16,7 +16,7 @@ export default {
   },
 
   search(prefix) {
-    return search(prefix).then(results => results.map(name => ({ name })))
+    return search(prefix).then(results => results.map(result => ({ name: result.name })))
   },
 
   dependencyRequestMatcher() {

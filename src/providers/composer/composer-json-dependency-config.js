@@ -6,7 +6,7 @@ import has from 'lodash/has'
 
 import { path, request } from '../../matchers'
 
-import { searchByName, versions } from 'packagist-package-lookup'
+import { searchByName, versions } from '../../packagist-package-lookup'
 
 const DEPENDENCY_PROPERTIES = ['require', 'require-dev']
 

@@ -19,10 +19,12 @@
   },
   "homepage": "https://github.com/bali182/autocomplete-json#readme",
   "dependencies": {
+    "axios": "^0.21.1",
     "lodash": "^4.17.21",
     "minimatch": "^3.0.4",
-    "npm-package-lookup": "^1.0.0",
-    "packagist-package-lookup": "^1.0.0",
+    "query-string": "^6.14.1",
+    "semver-stable": "^3.0.0",
+    "semver-utils": "^1.1.4",
     "tokenizer2": "^2.0.1",
     "uri-js": "^4.4.1"
   },

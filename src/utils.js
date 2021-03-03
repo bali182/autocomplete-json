@@ -3,8 +3,12 @@
 import isObject from 'lodash/isObject'
 import isArray from 'lodash/isArray'
 import isUndefined from 'lodash/isUndefined'
+import memoize from 'lodash/memoize'
 
+import axios from 'axios'
 import minimatch from 'minimatch'
+import semver from 'semver-utils'
+import semverStable from 'semver-stable'
 
 export class ArrayTraverser {
 
@@ -157,6 +161,36 @@ function doMatches(pattern, file) {
 
 export function matches(file, patterns) {
   return isArray(patterns) ? patterns.some(pattern => doMatches(pattern, file)) : doMatches(patterns, file)
+}
+
+export function fetchJson(url, options) {
+  return axios.get(url, options).then(response => response.data)
+}
+
+export function stableVersions(vers) {
+  return vers.filter(version => semverStable.is(version))
+}
+
+export function sortVersions(vers, order) {
+  const parse = memoize(version => semver.parse(version))
+  const compare = function compareSemvers(a, b) {
+    a = parse(a)
+    b = parse(b)
+    if (a.major !== b.major) {
+      return (a.major || 0) - (b.major || 0)
+    }
+    if (a.minor !== b.minor) {
+      return (a.minor || 0) - (b.minor || 0)
+    }
+    if (a.patch !== b.patch) {
+      return (a.patch || 0) - (b.patch || 0)
+    }
+    return 0
+  }
+  const compareWithSortOrder = function (a, b) {
+    return order * compare(a, b)
+  }
+  return vers.sort(compareWithSortOrder)
 }
 
 export const StorageType = {

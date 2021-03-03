@@ -2,7 +2,7 @@
 
 import startsWith from 'lodash/startsWith'
 import { path, request } from '../../matchers'
-import { search } from 'npm-package-lookup'
+import { search } from '../../npm-package-lookup'
 
 const PRESETS = 'presets'
 const BABEL_PRESET = 'babel-preset-'
@@ -15,7 +15,7 @@ export default class BabelRCPresetsProposalProvider {
     if (PRESET_MATCHER.matches(request)) {
       const presets = contents[PRESETS] || []
       const results = search(this.calculateSearchKeyword(prefix))
-      return results.then(names => names.filter(name => presets.indexOf(name.replace(BABEL_PRESET, '')) < 0).map(presetName => {
+      return results.then(result => result.map(r => r.name).filter(name => presets.indexOf(name.replace(BABEL_PRESET, '')) < 0).map(presetName => {
         const name = presetName.replace(BABEL_PRESET, '')
         const proposal = {
           displayText: name,
@@ -35,9 +35,9 @@ export default class BabelRCPresetsProposalProvider {
       return BABEL_PRESET
     } else if (startsWith(prefix, BABEL_PRESET)) {
       return prefix
-    } 
+    }
     return BABEL_PRESET + prefix
-    
+
   }
 
   getFilePattern() {
