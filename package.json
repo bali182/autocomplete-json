@@ -31,7 +31,7 @@
   "devDependencies": {
     "@semantic-release/apm-config": "^8.0.0",
     "atom-jasmine3-test-runner": "^5.1.9",
-    "eslint": "^7.21.0",
+    "eslint": "^7.22.0",
     "semantic-release": "^17.4.2"
   },
   "providedServices": {
