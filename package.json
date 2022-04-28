@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/bali182/autocomplete-json#readme",
   "dependencies": {
-    "axios": "^0.27.1",
+    "axios": "^0.27.2",
     "lodash": "^4.17.21",
     "minimatch": "^5.0.1",
     "query-string": "^7.1.1",
