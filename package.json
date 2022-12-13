@@ -22,7 +22,7 @@
     "axios": "^0.27.2",
     "lodash": "^4.17.21",
     "minimatch": "^5.1.0",
-    "query-string": "^7.1.1",
+    "query-string": "^8.0.0",
     "semver-stable": "^3.0.0",
     "semver-utils": "^1.1.4",
     "tokenizer2": "^2.0.1",
